@@ -37,4 +37,3 @@ jobs:
       - name: Run checks / build
         working-directory: ${{ matrix.dir }}
         run: ${{ matrix.command }}
-
