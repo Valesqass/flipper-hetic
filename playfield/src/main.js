@@ -18,6 +18,7 @@ import {
   FIXED_TIME_STEP,
   MAX_SUB_STEPS,
 } from "./physics.js";
+import { createBall } from "./ball.js";
 
 // ── Scene ──────────────────────────────────────────────
 const scene = new THREE.Scene();
@@ -136,6 +137,10 @@ createWall(
   WALL_HEIGHT / 2,
   bottomZ,
 );
+
+// ── Bille ──────────────────────────────────────────────
+const ball = createBall(scene, world);
+syncPairs.push(ball);
 
 // ── Resize ─────────────────────────────────────────────
 window.addEventListener("resize", () => {

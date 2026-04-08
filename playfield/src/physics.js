@@ -19,6 +19,16 @@ export const FIXED_TIME_STEP = 1 / 60;
 export const MAX_SUB_STEPS = 3;
 
 /**
+ * Materiaux physiques partages. Les `ContactMaterial` entre paires
+ * (ball <-> static, ball <-> flipper...) sont ajoutes par chaque module
+ * concerne (ball.js, flippers.js...).
+ */
+export const MATERIALS = {
+  ball: new CANNON.Material("ball"),
+  static: new CANNON.Material("static"),
+};
+
+/**
  * Cree le monde physique avec la gravite inclinee.
  */
 export function createPhysicsWorld() {
@@ -43,7 +53,11 @@ export function createPhysicsWorld() {
 export function createStaticBoxBody(world, { width, height, depth, position }) {
   const halfExtents = new CANNON.Vec3(width / 2, height / 2, depth / 2);
   const shape = new CANNON.Box(halfExtents);
-  const body = new CANNON.Body({ mass: 0, shape });
+  const body = new CANNON.Body({
+    mass: 0,
+    shape,
+    material: MATERIALS.static,
+  });
   body.position.set(position.x, position.y, position.z);
   world.addBody(body);
   return body;
