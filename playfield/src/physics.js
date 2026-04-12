@@ -26,6 +26,7 @@ export const MAX_SUB_STEPS = 3;
 export const MATERIALS = {
   ball: new CANNON.Material("ball"),
   static: new CANNON.Material("static"),
+  flipper: new CANNON.Material("flipper"),
 };
 
 /**
