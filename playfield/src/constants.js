@@ -27,3 +27,12 @@ export const PLUNGER_SPAWN_Z = TABLE_DEPTH / 2 - 1;
 
 // Plunger — force d'impulsion (Z negatif = vers le haut du plateau)
 export const PLUNGER_IMPULSE_FORCE = 10;
+
+// Flippers (battes)
+export const FLIPPER_LENGTH = 2.0;
+export const FLIPPER_WIDTH = 0.4;
+export const FLIPPER_HEIGHT = 0.3;
+export const FLIPPER_REST_ANGLE = 0.5;   // radians (~28°), battes au repos vers le drain
+export const FLIPPER_PIVOT_X = DRAIN_OPENING_WIDTH / 2 + 0.2; // distance du centre (±)
+export const FLIPPER_PIVOT_Z = TABLE_DEPTH / 2 - 1.5;
+export const FLIPPER_PIVOT_Y = FLIPPER_HEIGHT / 2 + 0.05;

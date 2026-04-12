@@ -19,7 +19,8 @@ import {
   MAX_SUB_STEPS,
 } from "./physics.js";
 import { createBall, launchBall, resetBall } from "./ball.js";
-import { initNetwork, emitStartGame, emitLaunchBall, gameState } from "./network.js";
+import { initNetwork, emitStartGame, emitLaunchBall, emitFlipperLeftDown, emitFlipperLeftUp, emitFlipperRightDown, emitFlipperRightUp, gameState } from "./network.js";
+import { createFlippers, setFlipperActive, updateFlippers } from "./flippers.js";
 
 // ── Scene ──────────────────────────────────────────────
 const scene = new THREE.Scene();
@@ -143,6 +144,10 @@ createWall(
 const ball = createBall(scene, world);
 syncPairs.push(ball);
 
+// ── Flippers ──────────────────────────────────────────
+const flippers = createFlippers(scene, world);
+syncPairs.push(flippers.left, flippers.right);
+
 // ── Reseau Socket.io ──────────────────────────────────
 const socket = initNetwork({
   onGameStarted() {
@@ -154,7 +159,7 @@ const socket = initNetwork({
   },
 });
 
-// ── Clavier : plunger (Espace), start (S), debug reset (R) ──
+// ── Clavier : plunger (Espace), start (S), flippers (fleches), debug (R) ──
 window.addEventListener("keydown", (e) => {
   if (e.repeat) return;
 
@@ -166,12 +171,33 @@ window.addEventListener("keydown", (e) => {
   }
 
   if (e.code === "KeyS") {
-    console.log("[main] touche S — emit start_game, status actuel :", gameState.status);
     emitStartGame(socket);
+  }
+
+  if (e.code === "ArrowLeft") {
+    e.preventDefault();
+    setFlipperActive(flippers, "left", true);
+    emitFlipperLeftDown(socket);
+  }
+  if (e.code === "ArrowRight") {
+    e.preventDefault();
+    setFlipperActive(flippers, "right", true);
+    emitFlipperRightDown(socket);
   }
 
   if (e.code === "KeyR") {
     resetBall(ball);
+  }
+});
+
+window.addEventListener("keyup", (e) => {
+  if (e.code === "ArrowLeft") {
+    setFlipperActive(flippers, "left", false);
+    emitFlipperLeftUp(socket);
+  }
+  if (e.code === "ArrowRight") {
+    setFlipperActive(flippers, "right", false);
+    emitFlipperRightUp(socket);
   }
 });
 
@@ -192,6 +218,7 @@ function animate() {
   const delta = Math.min((now - lastTime) / 1000, 0.1);
   lastTime = now;
 
+  updateFlippers(flippers, delta);
   world.step(FIXED_TIME_STEP, delta, MAX_SUB_STEPS);
   syncMeshesWithBodies(syncPairs);
 
