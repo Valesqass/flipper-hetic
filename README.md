@@ -38,3 +38,7 @@ L'ordre de lancement est important : commencez par le serveur.
    `cd backglass && npm install && npm run dev`
 4. **DMD (Port 5175)** :
    `cd dmd && npm install && npm run dev`
+
+## Test du serveur
+Pour tester les sockets sans interface graphique, lancez le serveur puis exécutez dans un autre terminal :
+`cd server && npm run test:client`
