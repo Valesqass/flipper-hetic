@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { io as Client } from "socket.io-client";
-import { registerSocketHandlers, resetState } from "../events.js";
+import { registerSocketHandlers, resetState } from "../adapters/socketHandlers.js";
 
 // ── Helpers ────────────────────────────────────────────
 

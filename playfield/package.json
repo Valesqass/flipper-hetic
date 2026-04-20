@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "cannon-es": "^0.20.0",
+    "shared": "0.0.1",
     "socket.io-client": "^4.8.3",
     "three": "^0.160.0"
   },
