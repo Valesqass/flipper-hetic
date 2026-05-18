@@ -9,12 +9,14 @@ import { createCollisionHandler } from "../usecases/collisionHandler.js";
 
 let onCollision;
 let onBallLost;
+let onBumperImpulse;
 let handler;
 
 beforeEach(() => {
   onCollision = vi.fn();
   onBallLost = vi.fn();
-  handler = createCollisionHandler({ onCollision, onBallLost });
+  onBumperImpulse = vi.fn();
+  handler = createCollisionHandler({ onCollision, onBallLost, onBumperImpulse });
 });
 
 // ── Drain ───────────────────────────────────────────────
@@ -91,6 +93,47 @@ describe("handleCollision", () => {
     handler.handleCollision(null, 1000);
     handler.handleCollision("", 1000);
     expect(onCollision).not.toHaveBeenCalled();
+  });
+});
+
+// ── Bumper repulsion (regle metier deplacee de l'adapter) ────────────────
+
+describe("bumper repulse", () => {
+  it("calcule un vecteur radial bumper -> bille et appelle onBumperImpulse", () => {
+    handler.handleCollision("bumper", 1000, {
+      ballPos: { x: 5, y: 0, z: 0 },
+      otherPos: { x: 0, y: 0, z: 0 },
+    });
+    expect(onBumperImpulse).toHaveBeenCalledOnce();
+    const v = onBumperImpulse.mock.calls[0][0];
+    expect(v.x).toBeGreaterThan(0); // bille a droite du bumper => poussee +X
+    expect(v.y).toBe(0);
+    expect(v.z).toBe(0);
+  });
+
+  it("n'appelle pas onBumperImpulse si le contexte est absent", () => {
+    handler.handleCollision("bumper", 1000);
+    expect(onBumperImpulse).not.toHaveBeenCalled();
+  });
+
+  it("n'appelle pas onBumperImpulse pour un autre type", () => {
+    handler.handleCollision("flipper", 1000, {
+      ballPos: { x: 5, y: 0, z: 0 },
+      otherPos: { x: 0, y: 0, z: 0 },
+    });
+    expect(onBumperImpulse).not.toHaveBeenCalled();
+  });
+
+  it("respecte le debounce : pas de repulse pendant le cooldown", () => {
+    handler.handleCollision("bumper", 1000, {
+      ballPos: { x: 5, y: 0, z: 0 },
+      otherPos: { x: 0, y: 0, z: 0 },
+    });
+    handler.handleCollision("bumper", 1100, {
+      ballPos: { x: 5, y: 0, z: 0 },
+      otherPos: { x: 0, y: 0, z: 0 },
+    });
+    expect(onBumperImpulse).toHaveBeenCalledOnce();
   });
 });
 

@@ -1,0 +1,19 @@
+# CDC technique — Flipper virtuel
+
+Ce dossier regroupe le Cahier des Charges technique du projet. Pour lancer le code, les tests et l’architecture logicielle du dépôt, voir le [README du dépôt](../README.md) et l’index [Documentation](../README.md).
+
+| Section | Fichier |
+|---------|---------|
+| 1. Vision, objectifs et périmètre | [vision-objectifs.md](vision-objectifs.md) |
+| 2. Use cases | [use-cases.md](use-cases.md) |
+| 3. Architecture technique | [architecture-technique.md](architecture-technique.md) |
+| 4. Diagrammes UML | [diagrammes.md](diagrammes.md) |
+| 5. Stack technique | [stack.md](stack.md) |
+| 6. Risques et contraintes | [risk.md](risk.md) |
+| 7. Conventions équipe | [conventions.md](conventions.md) |
+| 8. Roadmap et questions ouvertes | [roadmap/roadmap.md](roadmap/roadmap.md) |
+| 9. Guide Clean Architecture | [clean-architecture.md](clean-architecture.md) |
+
+MVP et critères : [mvp.md](mvp.md).
+
+**Alignement sujet officiel HETIC Web3 :** [referentiel-sujet-hetic-web3.md](referentiel-sujet-hetic-web3.md) (barème, livrables, annexe IoT **X / C / D / F**).

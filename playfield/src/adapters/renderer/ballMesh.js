@@ -2,8 +2,7 @@
  * Playfield — Mesh Three.js de la bille.
  */
 import * as THREE from "three";
-
-export const BALL_RADIUS = 0.25;
+import { BALL_RADIUS } from "../../domain/constants.js";
 
 export function createBallMesh(scene) {
   const mesh = new THREE.Mesh(
