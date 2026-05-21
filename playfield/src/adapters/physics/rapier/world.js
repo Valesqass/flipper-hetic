@@ -15,9 +15,10 @@
  */
 import { getRapier } from "./init.js";
 import { createBodyHandle } from "./bodyHandle.js";
+import { PLAYFIELD_VIEW_DEFAULTS } from "../../../domain/viewConfig.js";
 
-const TILT_DEG = 24;
-const GRAVITY = 18;
+const TILT_DEG = PLAYFIELD_VIEW_DEFAULTS.gravityTiltDeg;
+const GRAVITY = PLAYFIELD_VIEW_DEFAULTS.gravityMagnitude;
 
 export const FIXED_TIME_STEP = 1 / 120;
 export const MAX_SUB_STEPS = 10; // Rapier n'a pas de substeps natifs ; on garde la constante pour le port
@@ -35,15 +36,19 @@ export const MATERIALS = {
   bumper: { name: "bumper", friction: 0.1, restitution: 0.9 },
 };
 
+export function applyPhysicsGravity(world, tiltDeg = TILT_DEG, magnitude = GRAVITY) {
+  const tilt = (tiltDeg * Math.PI) / 180;
+  world.gravity = {
+    x: 0,
+    y: -magnitude * Math.cos(tilt),
+    z: magnitude * Math.sin(tilt),
+  };
+}
+
 export function createPhysicsWorld() {
   const RAPIER = getRapier();
-  const tilt = (TILT_DEG * Math.PI) / 180;
-  const gravity = {
-    x: 0,
-    y: -GRAVITY * Math.cos(tilt),
-    z: GRAVITY * Math.sin(tilt),
-  };
-  const world = new RAPIER.World(gravity);
+  const world = new RAPIER.World({ x: 0, y: 0, z: 0 });
+  applyPhysicsGravity(world, TILT_DEG, GRAVITY);
   world.timestep = FIXED_TIME_STEP;
 
   // EventQueue + bus de listeners centralises (ferme dans la closure du wrap).

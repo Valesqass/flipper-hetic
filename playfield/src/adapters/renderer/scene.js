@@ -6,6 +6,10 @@ import {
   MAX_RENDERER_PIXEL_RATIO,
   RENDERER_ANTIALIAS,
 } from "../../domain/constants.js";
+import {
+  PLAYFIELD_VIEW_DEFAULTS,
+  applyViewConfigToPerspectiveCamera,
+} from "../../domain/viewConfig.js";
 
 function effectivePixelRatio() {
   return Math.min(window.devicePixelRatio || 1, MAX_RENDERER_PIXEL_RATIO);
@@ -15,16 +19,14 @@ export function createScene() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x1a1a2e);
 
-  // Camera (vue top-down pour ecran vertical 9:16)
+  // Camera (config figée dans domain/viewConfig.js)
   const camera = new THREE.PerspectiveCamera(
-    60,
+    PLAYFIELD_VIEW_DEFAULTS.fov,
     window.innerWidth / window.innerHeight,
-    0.1,
-    100,
+    PLAYFIELD_VIEW_DEFAULTS.near,
+    PLAYFIELD_VIEW_DEFAULTS.far,
   );
-  camera.position.set(0, 20, 0);
-  camera.lookAt(0, 0, 0);
-  camera.up.set(0, 0, -1);
+  applyViewConfigToPerspectiveCamera(camera);
 
   // Renderer
   const renderer = new THREE.WebGLRenderer({
@@ -38,18 +40,21 @@ export function createScene() {
   document.body.appendChild(renderer.domElement);
 
   // Lumieres
-  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  dirLight.position.set(5, 15, 5);
+  const ambientLight = new THREE.AmbientLight(
+    0xffffff,
+    PLAYFIELD_VIEW_DEFAULTS.ambientIntensity,
+  );
+  scene.add(ambientLight);
+  const dirLight = new THREE.DirectionalLight(
+    0xffffff,
+    PLAYFIELD_VIEW_DEFAULTS.dirLightIntensity,
+  );
+  dirLight.position.set(
+    PLAYFIELD_VIEW_DEFAULTS.dirLightX,
+    PLAYFIELD_VIEW_DEFAULTS.dirLightY,
+    PLAYFIELD_VIEW_DEFAULTS.dirLightZ,
+  );
   scene.add(dirLight);
 
-  // Resize
-  window.addEventListener("resize", () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(effectivePixelRatio());
-  });
-
-  return { scene, camera, renderer };
+  return { scene, camera, renderer, ambientLight, dirLight };
 }

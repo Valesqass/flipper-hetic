@@ -70,6 +70,8 @@ Librairies et details techniques :
   - `rapier/` : backend Rapier actif (`@dimforge/rapier3d-compat`, init WASM async)
   - `index.js` : barrel selectionnant le backend actif
 - `playfield/src/adapters/actuators.js` : effets sortants (haptique, sons)
+- `playfield/src/domain/viewConfig.js` : config vue production (caméra, gravité, lumières)
+- `playfield/src/composition/playfieldViewRuntime.js` : runtime caméra (perspective / orthographique)
 
 ### Backglass
 - `backglass/src/main.js` : composition root

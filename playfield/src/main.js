@@ -1,6 +1,5 @@
 /**
  * Playfield — Composition root.
- * Délègue la construction du niveau et la boucle de jeu à `composition/`.
  */
 import { createScene } from "./adapters/renderer/scene.js";
 import {
@@ -12,9 +11,6 @@ import {
   setFlipperActive,
   openLaunchGate,
 } from "./adapters/physics/index.js";
-
-await initRapier();
-
 import {
   initNetwork,
   emitStartGame,
@@ -31,14 +27,33 @@ import { createCollisionHandler } from "./usecases/collisionHandler.js";
 import { createActuators } from "./adapters/actuators.js";
 import { createGameInputController, bindKeyboardInput } from "./adapters/input.js";
 import { buildLevel } from "./composition/buildLevel.js";
+import { groupLevelMeshes } from "./composition/levelGroup.js";
 import { startPlayfieldLoop } from "./composition/runGameLoop.js";
+import { createPlayfieldViewRuntime } from "./composition/playfieldViewRuntime.js";
+import { wirePlayfieldDebug } from "./adapters/debug/wirePlayfieldDebug.js";
+
+await initRapier();
 
 const actuators = createActuators();
 window.actuators = actuators;
 
-const { scene, camera, renderer } = createScene();
+const { scene, camera, renderer, dirLight } = createScene();
 const world = createPhysicsWorld();
 const level = buildLevel({ scene, world });
+const levelGroup = groupLevelMeshes(scene, level.syncPairs);
+
+const viewRuntime = createPlayfieldViewRuntime({
+  camera,
+  renderer,
+  scene,
+  levelGroup,
+  world,
+  dirLight,
+});
+
+window.addEventListener("resize", viewRuntime.onResize);
+
+wirePlayfieldDebug({ viewRuntime, camera, renderer, scene, levelGroup, world, dirLight });
 
 const socket = initNetwork({
   onGameStarted() {
@@ -116,6 +131,6 @@ startPlayfieldLoop({
   launchGateBody: level.launchGateBody,
   renderer,
   scene,
-  camera,
+  getCamera: viewRuntime.getCamera,
   gameState,
 });

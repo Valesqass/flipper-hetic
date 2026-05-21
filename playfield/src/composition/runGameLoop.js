@@ -29,8 +29,12 @@ export function startPlayfieldLoop(deps) {
     renderer,
     scene,
     camera,
+    getCamera,
+    onResize,
     gameState,
   } = deps;
+
+  const resolveCamera = typeof getCamera === "function" ? getCamera : () => camera;
 
   let lastTime = performance.now();
 
@@ -54,7 +58,11 @@ export function startPlayfieldLoop(deps) {
     }
 
     syncMeshesWithBodies(syncPairs);
-    renderer.render(scene, camera);
+    renderer.render(scene, resolveCamera());
+  }
+
+  if (typeof onResize === "function") {
+    window.addEventListener("resize", onResize);
   }
 
   animate();
