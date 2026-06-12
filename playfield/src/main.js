@@ -1,6 +1,3 @@
-/**
- * Playfield — Composition root.
- */
 import { createScene } from "./adapters/renderer/scene.js";
 import {
   initRapier,
@@ -40,6 +37,7 @@ await initRapier();
 
 const audio = createAudioEngine(updateAudioHud);
 audio.startTheme(0.18);
+audio.setMuted(true, false);
 mountAudioControls(audio);
 const audioHud = document.getElementById("audio-hud");
 if (audioHud) audioHud.style.display = "none";
@@ -48,8 +46,9 @@ window.actuators = actuators;
 
 const { scene, camera, renderer, dirLight } = createScene();
 const world = createPhysicsWorld();
-const level = buildLevel({ scene, world });
+const level = await buildLevel({ scene, world });
 const levelGroup = groupLevelMeshes(scene, level.syncPairs);
+levelGroup.add(level.gltfModel);
 
 const viewRuntime = createPlayfieldViewRuntime({
   camera,
@@ -74,6 +73,7 @@ const readyDebug = () => {
     world,
     dirLight,
     audio,
+    level,
     onResetHighScore: () => {
       if (socket) {
         emitResetHighScore(socket);
@@ -82,6 +82,11 @@ const readyDebug = () => {
     onResetBall: () => {
       resetBallBody(level.ballBody);
       openLaunchGate(level.launchGateBody);
+    },
+    onTriggerSpecialEvent: (type) => {
+      emitCollision(socket, type);
+      if (type === 'tunnel') audio?.play('milestone-2');
+      else if (type === 'tunnel-rv') audio?.play('milestone-1');
     },
   });
 };
@@ -118,11 +123,26 @@ socket = initNetwork({
 
 readyDebug();
 
+const BUMPER_SERVER_TYPE = {
+  'bumper-cyl-0':   'bumper_100',
+  'bumper-cyl-1':   'bumper_50',
+  'bumper-cyl-2':   'bumper_25',
+  'bumper-diamond':   'bumper_10',
+  'bumper-diamond-2': 'bumper_10',
+  'bumper-tri-left':  'bumper_10',
+  'bumper-tri-right': 'bumper_10',
+};
+
 const collisionHandler = createCollisionHandler({
   onCollision: (type) => {
-    emitCollision(socket, type);
-    if (type === "bumper") actuators.onBumperHit();
+    const serverType = type.startsWith("bumper")
+      ? (BUMPER_SERVER_TYPE[type] ?? "bumper")
+      : type;
+    emitCollision(socket, serverType);
+    if (type.startsWith("bumper")) actuators.onBumperHit();
     else if (type === "slingshot") actuators.onSlingshotHit();
+    else if (type === "tunnel") audio?.play('milestone-2');
+    else if (type === "tunnel-rv") audio?.play('milestone-1');
   },
   onBallLost: () => {
     emitBallLost(socket);

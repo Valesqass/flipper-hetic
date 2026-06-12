@@ -19,6 +19,7 @@ export {
   MATERIALS,
   createPhysicsWorld,
   createStaticBoxBody,
+  createSensorBoxBody,
   syncMeshesWithBodies,
 } from "./world.js";
 
@@ -34,15 +35,16 @@ export {
   setFlipperActive,
   updateFlippers,
   postStepFlippers,
+  setFlippersWorldRotY,
 } from "./flipperBody.js";
 
+export { createArchBody, createTriangleBody, createCylinderBody, createDiamondBody } from "./archBody.js";
 export { createBumperBodies } from "./bumperBody.js";
-export { createSlingshotBodies } from "./slingshotBody.js";
-export { createCornerDeflectorBodies } from "./cornerDeflectorBody.js";
 export {
   createLaunchGateBody,
   openLaunchGate,
   closeLaunchGate,
   updateLaunchGate,
+  setGateConfig,
 } from "./launchGateBody.js";
 export { attachCollisionListener } from "./collisionListener.js";

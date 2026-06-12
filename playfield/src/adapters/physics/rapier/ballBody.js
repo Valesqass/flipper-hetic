@@ -1,6 +1,3 @@
-/**
- * Rapier — Body de la bille + launch / reset / clamp.
- */
 import {
   BALL_RADIUS,
   PLUNGER_SPAWN_X,
@@ -33,10 +30,10 @@ export function createBallBody(world) {
     .setRestitution(MATERIALS.ball.restitution)
     .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
 
-  world.createCollider(colliderDesc, rb);
+  const collider = world.createCollider(colliderDesc, rb);
 
   // `launched` est porte par le body lui-meme (pas de global module).
-  const handle = createBodyHandle(rb, world, { userData: { type: "ball", launched: false } });
+  const handle = createBodyHandle(rb, world, { userData: { type: "ball", launched: false }, colliders: [collider] });
   resetBallBody(handle);
   return handle;
 }
@@ -64,8 +61,7 @@ export function resetBallBody(body) {
   body.rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
   body.rb.setAngvel({ x: 0, y: 0, z: 0 }, true);
   body.rb.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
-  // Fige la bille en kinematic le temps du lancement
-  body.rb.setBodyType(2 /* KinematicPositionBased */, true);
+  body.rb.setBodyType(2 /* KinematicPositionBased */, true); // freeze until launch
   body.rb.wakeUp();
   body.userData.launched = false;
 }
@@ -73,18 +69,14 @@ export function resetBallBody(body) {
 export function launchBallBody(body) {
   if (body.userData.launched) return false;
   body.rb.setBodyType(0 /* Dynamic */, true);
-  // Force le recalcul des proprietes de masse a partir du collider :
-  // sans ca, la transition Kinematic -> Dynamic peut laisser le body sans masse
-  // et `applyImpulse` ne produit aucune velocite (impulse / 0 = NaN ignore).
+  // Kinematic→Dynamic can leave body massless; recompute prevents applyImpulse being a no-op.
   if (typeof body.rb.recomputeMassPropertiesFromColliders === "function") {
     body.rb.recomputeMassPropertiesFromColliders();
   }
   body.rb.wakeUp();
-  // setLinvel direct (independant de la masse) plutot qu'applyImpulse :
-  // garantit que la bille part meme si le recompute ci-dessus est ignore.
-  // Avec BALL_MASS = 1, applyImpulse(F) ~ setLinvel(F), donc PLUNGER_IMPULSE_FORCE
-  // garde sa magnitude historique.
-  body.rb.setLinvel({ x: 0, y: 0, z: -PLUNGER_IMPULSE_FORCE }, true);
+  const zForce = 32 + Math.random() * 12; // 32–44, toujours assez fort pour sortir du tunnel
+  const xForce = 1 + Math.random() * 2;   // 1–3, courbe variable vers la zone flippers
+  body.rb.setLinvel({ x: -xForce, y: 0, z: -zForce }, true);
   body.userData.launched = true;
   return true;
 }

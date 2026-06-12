@@ -47,8 +47,12 @@ export function applyPhysicsGravity(world, tiltDeg = TILT_DEG, magnitude = GRAVI
 
 export function createPhysicsWorld() {
   const RAPIER = getRapier();
-  const world = new RAPIER.World({ x: 0, y: 0, z: 0 });
-  applyPhysicsGravity(world, TILT_DEG, GRAVITY);
+  const tilt = (TILT_DEG * Math.PI) / 180;
+  const world = new RAPIER.World({
+    x: 0,
+    y: -GRAVITY * Math.cos(tilt),
+    z: GRAVITY * Math.sin(tilt),
+  });
   world.timestep = FIXED_TIME_STEP;
 
   // EventQueue + bus de listeners centralises (ferme dans la closure du wrap).
@@ -75,16 +79,15 @@ export function createPhysicsWorld() {
   return world;
 }
 
-export function createStaticBoxBody(world, { width, height, depth, position, material, type = "wall", rotationY = 0 }) {
+export function createStaticBoxBody(world, { width, height, depth, position, material, type = "wall", rotation }) {
   const RAPIER = getRapier();
   const mat = MATERIALS[material] || MATERIALS.static;
 
   const bodyDesc = RAPIER.RigidBodyDesc.fixed()
     .setTranslation(position.x, position.y, position.z);
 
-  if (rotationY !== 0) {
-    const half = rotationY / 2;
-    bodyDesc.setRotation({ x: 0, y: Math.sin(half), z: 0, w: Math.cos(half) });
+  if (rotation) {
+    bodyDesc.setRotation(rotation);
   }
 
   const rb = world.createRigidBody(bodyDesc);
@@ -100,6 +103,20 @@ export function createStaticBoxBody(world, { width, height, depth, position, mat
     userData: { type },
     colliders: [collider],
   });
+}
+
+export function createSensorBoxBody(world, { width, height, depth, position, rotation, type = "sensor" }) {
+  const RAPIER = getRapier();
+  const bodyDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(position.x, position.y, position.z);
+  if (rotation) bodyDesc.setRotation(rotation);
+  const rb = world.createRigidBody(bodyDesc);
+  const collider = world.createCollider(
+    RAPIER.ColliderDesc.cuboid(width / 2, height / 2, depth / 2)
+      .setSensor(true)
+      .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS),
+    rb,
+  );
+  return createBodyHandle(rb, world, { userData: { type }, colliders: [collider] });
 }
 
 export function syncMeshesWithBodies(pairs) {

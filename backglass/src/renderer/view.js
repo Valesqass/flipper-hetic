@@ -2,9 +2,11 @@
  * Backglass — Mise à jour de la vue à partir de l'état serveur.
  */
 
-/**
- * @param {{ scoreValue: HTMLElement; ballsLeftValue: HTMLElement; highscoreValue: HTMLElement; highscorePopup: HTMLElement }} refs
- */
+const VIDEO_BY_EVENT = {
+  'tunnel':    '/assets/video/tight-tight-tight.mov',
+  'tunnel-rv': '/assets/video/own-private-domicile-video.mp4.mov',
+};
+
 export function createBackglassView(refs) {
   const { scoreValue, ballsLeftValue, highscoreValue } = refs;
   let highscoreBeatAnimationEndTime = 0;
@@ -29,6 +31,33 @@ export function createBackglassView(refs) {
     },
     isHighScoreAnimationBlocking() {
       return performance.now() < highscoreBeatAnimationEndTime;
+    },
+    showVideoPopup(eventType) {
+      const popup = refs.videoPopup;
+      const video = refs.specialEventVideo;
+      if (!popup || !video) return;
+      if (!video.paused && !video.ended) return;
+      const src = VIDEO_BY_EVENT[eventType];
+      if (!src) return;
+
+      const hide = () => {
+        popup.classList.remove("visible");
+        popup.setAttribute("aria-hidden", "true");
+        video.src = "";
+        video.onerror = null;
+        video.onended = null;
+      };
+
+      video.src = src;
+      video.load();
+      popup.setAttribute("aria-hidden", "false");
+      popup.classList.add("visible");
+      video.onended = hide;
+      video.onerror = hide;
+      video.addEventListener('canplay', function onCanPlay() {
+        video.removeEventListener('canplay', onCanPlay);
+        video.play().catch(hide);
+      });
     },
   };
 }

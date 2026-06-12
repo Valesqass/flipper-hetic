@@ -1,41 +1,50 @@
-/**
- * Wire playfield debug — entry point for debug menu.
- * Import this in main.js, remove when debug is no longer needed.
- */
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DEBUG_ENABLED } from "./config.js";
 import { createDebugUI } from "./ui.js";
 import { createAudioDebugUI } from "./audioDebug.js";
-import {
-  PLAYFIELD_VIEW_DEFAULTS,
-  applyViewConfigToPerspectiveCamera,
-  applyViewConfigToLevelGroup,
-} from "../../domain/viewConfig.js";
+import { createPlayfieldDebugUI } from "./playfieldDebug.js";
+import { createPhysicsDebugUI } from "./physicsDebug.js";
 
-const DEG = Math.PI / 180;
-
-/**
- * Initialize debug menu and apply config changes in real-time.
- * @param {Object} deps - { viewRuntime, camera, renderer, scene, levelGroup, world, dirLight }
- */
 export function wirePlayfieldDebug(deps) {
   if (!DEBUG_ENABLED) {
     console.log("[debug] disabled via config");
     return;
   }
 
-  const { viewRuntime, audio, onResetHighScore, onResetBall } = deps;
+  const { viewRuntime, renderer, audio, onResetHighScore, onResetBall, level } = deps;
 
   const onConfigChange = (config) => {
-    // Update viewRuntime.params and apply all changes at once
     Object.assign(viewRuntime.params, config);
     viewRuntime.apply();
     console.log("[debug] config applied", config);
   };
 
-  // Create UI with config change handler and debug actions
-  createDebugUI({ onConfigChange, onResetHighScore, onResetBall });
+  const { container } = createDebugUI({ onConfigChange, onResetHighScore, onResetBall });
+
+  const controls = new OrbitControls(viewRuntime.orthoCamera, renderer.domElement);
+  controls.enabled = false;
+
+  new MutationObserver(() => {
+    controls.enabled = container.style.display !== 'none';
+    if (!controls.enabled) viewRuntime.apply();
+  }).observe(container, { attributes: true, attributeFilter: ['style'] });
+
   if (audio) {
     createAudioDebugUI(audio);
+  }
+  if (level) {
+    createPlayfieldDebugUI({
+      gltfModel:              level.gltfModel,
+      flipperBodies:          level.flipperBodies,
+      ballBody:               level.ballBody,
+      world:                  deps.world,
+      onConfigChange,
+      physicsRotateY:         level.physicsRotateY,
+      setPhysicsDebugVisible: level.setPhysicsDebugVisible,
+    });
+    createPhysicsDebugUI({
+      onTriggerSpecialEvent: deps.onTriggerSpecialEvent,
+    });
   }
 
   console.log("[debug] menu initialized — press ` to toggle");

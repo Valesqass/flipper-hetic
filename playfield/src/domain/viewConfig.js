@@ -1,11 +1,8 @@
-/**
- * Configuration vue playfield (production).
- */
 export const PLAYFIELD_VIEW_DEFAULTS = {
   cameraMode: "orthographic",
   cameraPosX: 0,
   cameraPosY: 20,
-  cameraPosZ: 6,
+  cameraPosZ: 22.6,
   lookAtX: 0,
   lookAtY: 0,
   lookAtZ: 0,
@@ -17,12 +14,12 @@ export const PLAYFIELD_VIEW_DEFAULTS = {
   near: 0.1,
   far: 100,
   levelPosX: 0,
-  levelPosY: 0,
+  levelPosY: 3.4,
   levelPosZ: 0,
   levelRotX: 0,
   levelRotY: 0,
   levelRotZ: 0,
-  gravityTiltDeg: 24,
+  gravityTiltDeg: 8,
   gravityMagnitude: 18,
   ambientIntensity: 0.6,
   dirLightX: 5,
@@ -33,10 +30,6 @@ export const PLAYFIELD_VIEW_DEFAULTS = {
 
 const DEG = Math.PI / 180;
 
-/**
- * @param {import("three").PerspectiveCamera} camera
- * @param {typeof PLAYFIELD_VIEW_DEFAULTS} [config]
- */
 export function applyViewConfigToPerspectiveCamera(
   camera,
   config = PLAYFIELD_VIEW_DEFAULTS,
@@ -50,10 +43,6 @@ export function applyViewConfigToPerspectiveCamera(
   camera.updateProjectionMatrix();
 }
 
-/**
- * @param {import("three").Group} group
- * @param {typeof PLAYFIELD_VIEW_DEFAULTS} [config]
- */
 export function applyViewConfigToLevelGroup(
   group,
   config = PLAYFIELD_VIEW_DEFAULTS,

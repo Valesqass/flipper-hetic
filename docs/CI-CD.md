@@ -38,7 +38,7 @@ Critères de succès :
 - aucune erreur build
 - (optionnel) tests / lint OK
 
-Étapes Terraform (toujours exécutées dans CI) :
+Étapes Terraform (prévues dans CI, non implémentées) :
 1. `terraform fmt -check`
 2. `terraform init`
 3. `terraform validate`
@@ -59,7 +59,7 @@ Option B (déploiement réel via SSH, sur une VM configurée) :
   - redémarrage du serveur Node
   - vérification que le serveur tourne (health check)
 
-Étapes Terraform (toujours exécutées dans CD) :
+Étapes Terraform (prévues dans CD, non implémentées) :
 1. `terraform init`
 2. `terraform plan`
 3. `terraform apply`
