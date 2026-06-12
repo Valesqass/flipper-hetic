@@ -96,6 +96,22 @@ export async function buildLevel({ scene, world }) {
     }
   }
 
+  const RED_RECT_DEF = { x: -3.6, y: 0.5, z: -4.15, w: 4.35, h: 1, d: 0.3, rotY: -82 };
+  const redRectPair = { mesh: tableMeshes[28], body: null };
+  function setRedRect(p) {
+    const hy = p.rotY / 2;
+    if (redRectPair.body) world.removeRigidBody(redRectPair.body.rb);
+    redRectPair.body = createStaticBoxBody(world, {
+      width: p.w, height: p.h, depth: p.d,
+      position: { x: p.x, y: p.y, z: p.z },
+      ...(p.rotY ? { rotation: { x: 0, y: Math.sin(hy), z: 0, w: Math.cos(hy) } } : {}),
+    });
+    redRectPair.mesh.geometry.dispose();
+    redRectPair.mesh.geometry = new BoxGeometry(p.w, p.h, p.d);
+  }
+  setRedRect({ ...RED_RECT_DEF, rotY: RED_RECT_DEF.rotY * DEG });
+  syncPairs.push(redRectPair);
+
   const TUCO_SENSOR_DEF = { x: -1.6, y: 0.5, z: -5.8, w: 0.75, h: 1, d: 0.4, rotY: 0 };
   const tucoSensorPair = { mesh: tableMeshes[26], body: null };
   function setTucoSensor(p) {
@@ -256,23 +272,32 @@ export async function buildLevel({ scene, world }) {
   );
   syncPairs.push({ mesh: launchGateMesh, body: launchGateBody });
 
-  const _gHalfRot = (launchGateBody.userData.rotY * DEG) / 2;
-  const gateEntranceSensor = createSensorBoxBody(world, {
-    width: launchGateBody.userData.w,
-    height: launchGateBody.userData.h + 0.3,
-    depth: 0.8,
-    position: { x: launchGateBody.userData.closedX - 1.5, y: WALL_HEIGHT / 2, z: launchGateBody.userData.closedZ },
-    rotation: { x: 0, y: Math.sin(_gHalfRot), z: 0, w: Math.cos(_gHalfRot) },
-    type: 'gate-entrance',
-  });
+  const GATE_SENSOR_DEF = { x: 3.15, y: 0.5, z: -4.3, w: 3.55, h: 1.3, d: 0.4, rotY: 90 };
+  const gateSensorPair = { mesh: tableMeshes[29], body: null };
+  function setGateEntranceSensor(p) {
+    const hy = p.rotY / 2;
+    if (gateSensorPair.body) world.removeRigidBody(gateSensorPair.body.rb);
+    gateSensorPair.body = createSensorBoxBody(world, {
+      width: p.w, height: p.h, depth: p.d,
+      position: { x: p.x, y: p.y, z: p.z },
+      rotation: { x: 0, y: Math.sin(hy), z: 0, w: Math.cos(hy) },
+      type: 'gate-entrance',
+    });
+    gateSensorPair.mesh.geometry.dispose();
+    gateSensorPair.mesh.geometry = new BoxGeometry(p.w, p.h, p.d);
+  }
+  setGateEntranceSensor({ ...GATE_SENSOR_DEF, rotY: GATE_SENSOR_DEF.rotY * DEG });
+  syncPairs.push(gateSensorPair);
+
   world.addCollisionListener((h1, h2) => {
+    if (!gateSensorPair.body) return;
     const ballColHandle = ballBody.colliders[0].handle;
     if (h1 !== ballColHandle && h2 !== ballColHandle) return;
     const otherH = h1 === ballColHandle ? h2 : h1;
     const col = world.getCollider(otherH);
     if (!col) return;
     const otherRb = col.parent();
-    if (!otherRb || otherRb.handle !== gateEntranceSensor.rb.handle) return;
+    if (!otherRb || otherRb.handle !== gateSensorPair.body.rb.handle) return;
     if (launchGateBody.userData.state === 'open') closeLaunchGate(launchGateBody);
   });
 
@@ -353,9 +378,5 @@ export async function buildLevel({ scene, world }) {
       launchGateMesh.geometry = new BoxGeometry(config.w, config.h, config.d);
     },
     cylinderDebugConfigs: [],
-    setTucoSensor,
-    tucoSensorDebugConfig: { label: 'Tuco Sensor', defaults: { ...TUCO_SENSOR_DEF } },
-    setRvSensor,
-    rvSensorDebugConfig: { label: 'RV Sensor', defaults: { ...RV_SENSOR_DEF } },
   };
 }

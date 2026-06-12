@@ -43,10 +43,7 @@ export function wirePlayfieldDebug(deps) {
       setPhysicsDebugVisible: level.setPhysicsDebugVisible,
     });
     createPhysicsDebugUI({
-      setTucoSensor:         level.setTucoSensor,
-      tucoSensorDebugConfig: level.tucoSensorDebugConfig,
-      setRvSensor:           level.setRvSensor,
-      rvSensorDebugConfig:   level.rvSensorDebugConfig,
+      onTriggerSpecialEvent: deps.onTriggerSpecialEvent,
     });
   }
 

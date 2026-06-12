@@ -10,7 +10,7 @@ const POINTS_BY_TYPE = {
   bumper_25:   25,
   bumper_10:   10,
   tunnel:       1000,
-  'tunnel-rv':  1000,
+  'tunnel-rv':  5000,
   triangle:      0,
   wall:          0,
   flipper:       0,

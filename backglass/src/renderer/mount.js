@@ -27,7 +27,7 @@ export function mountBackglassRoot() {
       <div id="highscore-popup" class="highscore-popup" aria-hidden="true">New Highest score !</div>
     </div>
     <div id="video-popup" class="video-popup" aria-hidden="true">
-      <video id="special-event-video" class="video-popup__video" playsinline></video>
+      <video id="special-event-video" class="video-popup__video" playsinline muted></video>
     </div>
   `;
 

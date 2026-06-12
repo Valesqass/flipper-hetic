@@ -220,5 +220,21 @@ export function createTableMeshes(scene) {
   scene.add(rvSensorMesh);
   meshes.push(rvSensorMesh);
 
+  // Red Rect (index 28) — rouge opaque, mis à jour par buildLevel
+  const redRectMesh = new THREE.Mesh(
+    new THREE.BoxGeometry(0.1, 0.1, 0.1),
+    new THREE.MeshStandardMaterial({ color: 0xff2222, transparent: true, opacity: 0.7 }),
+  );
+  scene.add(redRectMesh);
+  meshes.push(redRectMesh);
+
+  // Gate entrance sensor (index 29) — violet opaque, mis à jour par buildLevel
+  const gateEntranceMesh = new THREE.Mesh(
+    new THREE.BoxGeometry(0.1, 0.1, 0.1),
+    new THREE.MeshStandardMaterial({ color: 0x8800ff, transparent: true, opacity: 0.6 }),
+  );
+  scene.add(gateEntranceMesh);
+  meshes.push(gateEntranceMesh);
+
   return meshes;
 }

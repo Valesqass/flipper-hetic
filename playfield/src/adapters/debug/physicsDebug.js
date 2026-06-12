@@ -38,7 +38,7 @@ function makeRow(sec, label, min, max, step, initial, onChange) {
   return { set: v => { slider.value = v; num.value = v; } };
 }
 
-export function createPhysicsDebugUI({ wallDefs, updateWall, setCylinder, cylinderDebugConfigs, setGateConfig, gateDefaults, setTucoSensor, tucoSensorDebugConfig, setRvSensor, rvSensorDebugConfig } = {}) {
+export function createPhysicsDebugUI({ wallDefs, updateWall, setCylinder, cylinderDebugConfigs, setGateConfig, gateDefaults, onTriggerSpecialEvent } = {}) {
   const panel = document.createElement('div');
   panel.style.cssText = [
     'position:fixed;top:50px;right:450px;width:400px',
@@ -141,47 +141,25 @@ export function createPhysicsDebugUI({ wallDefs, updateWall, setCylinder, cylind
     }
   }
 
-  // — Sections Sensors (Tuco / RV) —
-  for (const [setFn, cfg] of [[setTucoSensor, tucoSensorDebugConfig], [setRvSensor, rvSensorDebugConfig]]) {
-    if (!setFn || !cfg) continue;
-    const { label, defaults } = cfg;
-    const s = { ...defaults };
-    const apply = () => setFn({ ...s, rotY: s.rotY * Math.PI / 180 });
-
+  // — Special Events test buttons —
+  if (onTriggerSpecialEvent) {
     const sec = document.createElement('div');
-    sec.style.cssText = 'margin-top:10px;border-top:1px solid rgba(0,255,0,.3);padding-top:8px';
-
-    const secHdr = document.createElement('div');
-    secHdr.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:6px';
-    const secTitle = document.createElement('div');
-    secTitle.style.cssText = 'font-weight:bold;color:#0f0';
-    secTitle.textContent = `▸ ${label}`;
-    secHdr.appendChild(secTitle);
-
-    const resetBtn = document.createElement('button');
-    resetBtn.textContent = '↺ Reset';
-    resetBtn.style.cssText = BTN.replace(/#0ff/g, '#0f0');
-    const rows = [
-      { key: 'x',    label: 'X',   min: -10,  max: 10,  step: 0.05 },
-      { key: 'y',    label: 'Y',   min: -5,   max: 10,  step: 0.05 },
-      { key: 'z',    label: 'Z',   min: -15,  max: 15,  step: 0.05 },
-      { key: 'rotY', label: 'RY°', min: -180, max: 180, step: 1    },
-      { key: 'w',    label: 'W',   min: 0.05, max: 8,   step: 0.05 },
-      { key: 'h',    label: 'H',   min: 0.05, max: 5,   step: 0.05 },
-      { key: 'd',    label: 'D',   min: 0.05, max: 5,   step: 0.05 },
-    ].map(({ key, label: lbl, min, max, step }) => {
-      const ctrl = makeRow(sec, lbl, min, max, step, s[key], val => { s[key] = val; apply(); });
-      return { key, ctrl };
-    });
-    resetBtn.addEventListener('click', () => {
-      Object.assign(s, defaults);
-      rows.forEach(r => r.ctrl.set(defaults[r.key]));
-      apply();
-    });
-    secHdr.appendChild(resetBtn);
-    sec.insertBefore(secHdr, sec.firstChild);
+    sec.style.cssText = 'margin-top:10px;border-top:1px solid rgba(136,0,255,.3);padding-top:8px';
+    const title = document.createElement('div');
+    title.style.cssText = 'font-weight:bold;color:#a040ff;margin-bottom:8px';
+    title.textContent = '▸ Special Events';
+    sec.appendChild(title);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:8px';
+    for (const [label, type] of [['▶ Tuco', 'tunnel'], ['▶ RV', 'tunnel-rv']]) {
+      const btn = document.createElement('button');
+      btn.textContent = label;
+      btn.style.cssText = 'flex:1;padding:6px;background:#a040ff;color:#fff;border:none;border-radius:3px;cursor:pointer;font:bold 11px \'Courier New\'';
+      btn.addEventListener('click', () => onTriggerSpecialEvent(type));
+      row.appendChild(btn);
+    }
+    sec.appendChild(row);
     panel.appendChild(sec);
-    copyState[label] = s;
   }
 
   // — Copy JSON —

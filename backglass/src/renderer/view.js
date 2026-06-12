@@ -36,17 +36,28 @@ export function createBackglassView(refs) {
       const popup = refs.videoPopup;
       const video = refs.specialEventVideo;
       if (!popup || !video) return;
+      if (!video.paused && !video.ended) return;
       const src = VIDEO_BY_EVENT[eventType];
       if (!src) return;
-      video.src = src;
-      popup.setAttribute("aria-hidden", "false");
-      popup.classList.add("visible");
-      video.play().catch(() => {});
-      video.onended = () => {
+
+      const hide = () => {
         popup.classList.remove("visible");
         popup.setAttribute("aria-hidden", "true");
         video.src = "";
+        video.onerror = null;
+        video.onended = null;
       };
+
+      video.src = src;
+      video.load();
+      popup.setAttribute("aria-hidden", "false");
+      popup.classList.add("visible");
+      video.onended = hide;
+      video.onerror = hide;
+      video.addEventListener('canplay', function onCanPlay() {
+        video.removeEventListener('canplay', onCanPlay);
+        video.play().catch(hide);
+      });
     },
   };
 }

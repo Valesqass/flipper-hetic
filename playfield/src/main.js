@@ -83,6 +83,11 @@ const readyDebug = () => {
       resetBallBody(level.ballBody);
       openLaunchGate(level.launchGateBody);
     },
+    onTriggerSpecialEvent: (type) => {
+      emitCollision(socket, type);
+      if (type === 'tunnel') audio?.play('milestone-2');
+      else if (type === 'tunnel-rv') audio?.play('milestone-1');
+    },
   });
 };
 
