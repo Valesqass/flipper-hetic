@@ -525,5 +525,17 @@ export function createDebugUI({ onConfigChange, onResetHighScore, onResetBall } 
   document.body.appendChild(container);
   updateReport();
 
-  return { container, state };
+  function syncInputs(partial) {
+    Object.assign(state, partial);
+    Object.entries(partial).forEach(([k, v]) => {
+      const input = inputRefs[k];
+      if (!input) return;
+      input.value = v;
+      const slider = input.previousElementSibling;
+      if (slider && slider.type === "range") slider.value = v;
+    });
+    updateReport();
+  }
+
+  return { container, state, syncInputs };
 }

@@ -9,16 +9,42 @@ export function wirePlayfieldDebug(deps) {
 
   if (level) level.setPhysicsDebugVisible(true);
 
+  // `controls` is declared here so onConfigChange can reference it after assignment.
+  let controls;
+
   const onConfigChange = (config) => {
     Object.assign(viewRuntime.params, config);
     viewRuntime.apply();
-    console.log("[debug] config applied", config);
+    // Re-sync OrbitControls so it doesn't fight the new camera position on the
+    // next drag. update() re-derives spherical coords from the camera's current
+    // position, making sliders and OrbitControls share the same source of truth.
+    if (controls) {
+      const p = viewRuntime.params;
+      controls.target.set(p.lookAtX, p.lookAtY, p.lookAtZ);
+      controls.update();
+    }
   };
 
-  const { container } = createDebugUI({ onConfigChange, onResetHighScore, onResetBall });
+  const { container, syncInputs } = createDebugUI({ onConfigChange, onResetHighScore, onResetBall });
 
-  const controls = new OrbitControls(viewRuntime.orthoCamera, renderer.domElement);
+  controls = new OrbitControls(viewRuntime.orthoCamera, renderer.domElement);
   controls.enabled = false;
+
+  // When OrbitControls moves the camera, push the new position back into params
+  // and into the slider DOM so the JSON output and sliders stay in sync.
+  controls.addEventListener('change', () => {
+    const cam = controls.object;
+    const partial = {
+      cameraPosX: +cam.position.x.toFixed(3),
+      cameraPosY: +cam.position.y.toFixed(3),
+      cameraPosZ: +cam.position.z.toFixed(3),
+      lookAtX: +controls.target.x.toFixed(3),
+      lookAtY: +controls.target.y.toFixed(3),
+      lookAtZ: +controls.target.z.toFixed(3),
+    };
+    Object.assign(viewRuntime.params, partial);
+    syncInputs(partial);
+  });
 
   new MutationObserver(() => {
     controls.enabled = container.style.display !== 'none';

@@ -37,6 +37,7 @@ export function startPlayfieldLoop(deps) {
   const resolveCamera = typeof getCamera === "function" ? getCamera : () => camera;
 
   let lastTime = performance.now();
+  let accumulator = 0;
 
   function animate() {
     requestAnimationFrame(animate);
@@ -45,9 +46,14 @@ export function startPlayfieldLoop(deps) {
     const delta = Math.min((now - lastTime) / 1000, 0.1);
     lastTime = now;
 
-    updateFlippers(flipperBodies);
-    world.step(FIXED_TIME_STEP, delta, MAX_SUB_STEPS);
-    postStepFlippers(flipperBodies);
+    accumulator += delta;
+    while (accumulator >= FIXED_TIME_STEP) {
+      updateFlippers(flipperBodies);
+      world.step(FIXED_TIME_STEP, FIXED_TIME_STEP, 1);
+      postStepFlippers(flipperBodies);
+      accumulator -= FIXED_TIME_STEP;
+    }
+
     clampBallBody(ballBody);
     updateLaunchGate(launchGateBody, ballBody.position.z);
 
