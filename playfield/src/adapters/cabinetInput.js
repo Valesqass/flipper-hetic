@@ -31,7 +31,10 @@ export function createCabinetInputSource(socket) {
             if (down) emit("start");
             return;
           case "PLUNGER":
-            if (down) emit("launch");
+            // On declenche sur le relachement (front UP) : le joueur tire la
+            // tirette puis la relache pour lancer, comme un vrai plunger a
+            // ressort. Avant on tirait sur DOWN, le tir partait des l'appui.
+            if (!down) emit("launch");
             return;
           default:
             // Bouton declare cote firmware mais sans action — ignore.

@@ -25,7 +25,7 @@ et appelle l'`inputController` (meme chemin que le clavier).
 | `BLACK_RIGHT`          |  13  | bouton noir droit   | flipper droit       |
 | `WHITE_RIGHT`          |  25  | bouton blanc droit  | —                   |
 | `FRONT_WHITE`          |  33  | front white         | —                   |
-| `PLUNGER`              |  32  | plunger / tirette   | **launch** (impulsion) |
+| `PLUNGER`              |  32  | plunger / tirette   | **launch** (au relachement) |
 
 > Le mapping ID -> action vit dans `playfield/src/adapters/cabinetInput.js`.
 > Pour activer un bouton inutilise, ajouter une branche dans le `switch`.
