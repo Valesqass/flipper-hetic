@@ -9,6 +9,7 @@ const DEG = Math.PI / 180;
 
 export function buildSensors(world, tableMeshes, ballBody, launchGateBody) {
   const syncPairs = [];
+  const sensorDefs = [];
 
   // Static obstacle near the RV sensor zone
   const RED_RECT_DEF = { x: -3.6, y: 0.5, z: -4.15, w: 4.35, h: 1, d: 0.3, rotY: -82 };
@@ -24,6 +25,7 @@ export function buildSensors(world, tableMeshes, ballBody, launchGateBody) {
   redRectPair.mesh.geometry.dispose();
   redRectPair.mesh.geometry = new BoxGeometry(RED_RECT_DEF.w, RED_RECT_DEF.h, RED_RECT_DEF.d);
   syncPairs.push(redRectPair);
+  sensorDefs.push({ name: 'Obstacle RV', body: redRectPair.body, mesh: redRectPair.mesh, ix: RED_RECT_DEF.x, iy: RED_RECT_DEF.y, iz: RED_RECT_DEF.z, iry: RED_RECT_DEF.rotY, w: RED_RECT_DEF.w, h: RED_RECT_DEF.h, d: RED_RECT_DEF.d });
 
   // Tuco tunnel entrance sensor
   const TUCO_DEF = { x: -1.6, y: 0.5, z: -5.8, w: 0.75, h: 1, d: 0.4 };
@@ -38,6 +40,7 @@ export function buildSensors(world, tableMeshes, ballBody, launchGateBody) {
   tucoPair.mesh.geometry.dispose();
   tucoPair.mesh.geometry = new BoxGeometry(TUCO_DEF.w, TUCO_DEF.h, TUCO_DEF.d);
   syncPairs.push(tucoPair);
+  sensorDefs.push({ name: 'Sensor Tuco', body: tucoPair.body, mesh: tucoPair.mesh, ix: TUCO_DEF.x, iy: TUCO_DEF.y, iz: TUCO_DEF.z, iry: 0, w: TUCO_DEF.w, h: TUCO_DEF.h, d: TUCO_DEF.d });
 
   // RV tunnel entrance sensor
   const RV_DEF = { x: -4.25, y: 0.5, z: -2.6, w: 0.85, h: 1, d: 0.5 };
@@ -52,6 +55,7 @@ export function buildSensors(world, tableMeshes, ballBody, launchGateBody) {
   rvPair.mesh.geometry.dispose();
   rvPair.mesh.geometry = new BoxGeometry(RV_DEF.w, RV_DEF.h, RV_DEF.d);
   syncPairs.push(rvPair);
+  sensorDefs.push({ name: 'Sensor RV', body: rvPair.body, mesh: rvPair.mesh, ix: RV_DEF.x, iy: RV_DEF.y, iz: RV_DEF.z, iry: 0, w: RV_DEF.w, h: RV_DEF.h, d: RV_DEF.d });
 
   // Launch gate entrance sensor — closes the gate when the ball exits the tunnel
   const GATE_DEF = { x: 3.15, y: 0.5, z: -4.3, w: 3.55, h: 1.3, d: 0.4, rotY: 90 };
@@ -66,6 +70,7 @@ export function buildSensors(world, tableMeshes, ballBody, launchGateBody) {
   gatePair.mesh.geometry.dispose();
   gatePair.mesh.geometry = new BoxGeometry(GATE_DEF.w, GATE_DEF.h, GATE_DEF.d);
   syncPairs.push(gatePair);
+  sensorDefs.push({ name: 'Sensor Gate', body: gatePair.body, mesh: gatePair.mesh, ix: GATE_DEF.x, iy: GATE_DEF.y, iz: GATE_DEF.z, iry: GATE_DEF.rotY, w: GATE_DEF.w, h: GATE_DEF.h, d: GATE_DEF.d });
 
   world.addCollisionListener((h1, h2) => {
     if (!gatePair.body) return;
@@ -79,5 +84,5 @@ export function buildSensors(world, tableMeshes, ballBody, launchGateBody) {
     if (launchGateBody.userData.state === 'open') closeLaunchGate(launchGateBody);
   });
 
-  return { syncPairs };
+  return { syncPairs, sensorDefs };
 }

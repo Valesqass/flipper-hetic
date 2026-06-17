@@ -1,54 +1,58 @@
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createDebugUI } from "./ui.js";
 import { createAudioDebugUI } from "./audioDebug.js";
 import { createPlayfieldDebugUI } from "./playfieldDebug.js";
 import { createPhysicsDebugUI } from "./physicsDebug.js";
 
+function createAspectOverlay() {
+  const overlay = document.createElement("div");
+  overlay.style.cssText = [
+    "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%)",
+    "border:2px solid #fff;background:transparent;pointer-events:none",
+    "z-index:9998;display:none;box-sizing:border-box",
+  ].join(";");
+  document.body.appendChild(overlay);
+
+  function resize() {
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    let w, h;
+    if (H * 9 / 16 <= W) { h = H; w = h * 9 / 16; }
+    else { w = W; h = w * 16 / 9; }
+    overlay.style.width = w + "px";
+    overlay.style.height = h + "px";
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  let visible = false;
+  const btn = document.createElement("button");
+  btn.textContent = "9:16";
+  btn.style.cssText = "position:fixed;top:10px;right:270px;padding:4px 8px;background:#fff;color:#000;border:none;border-radius:3px;font:bold 11px 'Courier New';cursor:pointer;z-index:10001";
+  btn.addEventListener("click", () => {
+    visible = !visible;
+    overlay.style.display = visible ? "block" : "none";
+    btn.style.background = visible ? "#ff0" : "#fff";
+  });
+  document.body.appendChild(btn);
+}
+
 export function wirePlayfieldDebug(deps) {
-  const { viewRuntime, renderer, audio, onResetHighScore, onResetBall, level } = deps;
+  const { viewRuntime, audio, onResetHighScore, onResetBall, level } = deps;
+  createAspectOverlay();
 
   if (level) level.setPhysicsDebugVisible(true);
-
-  // `controls` is declared here so onConfigChange can reference it after assignment.
-  let controls;
 
   const onConfigChange = (config) => {
     Object.assign(viewRuntime.params, config);
     viewRuntime.apply();
-    // Re-sync OrbitControls so it doesn't fight the new camera position on the
-    // next drag. update() re-derives spherical coords from the camera's current
-    // position, making sliders and OrbitControls share the same source of truth.
-    if (controls) {
-      const p = viewRuntime.params;
-      controls.target.set(p.lookAtX, p.lookAtY, p.lookAtZ);
-      controls.update();
-    }
   };
 
   const { container, syncInputs } = createDebugUI({ onConfigChange, onResetHighScore, onResetBall });
 
-  controls = new OrbitControls(viewRuntime.orthoCamera, renderer.domElement);
-  controls.enabled = false;
-
-  // When OrbitControls moves the camera, push the new position back into params
-  // and into the slider DOM so the JSON output and sliders stay in sync.
-  controls.addEventListener('change', () => {
-    const cam = controls.object;
-    const partial = {
-      cameraPosX: +cam.position.x.toFixed(3),
-      cameraPosY: +cam.position.y.toFixed(3),
-      cameraPosZ: +cam.position.z.toFixed(3),
-      lookAtX: +controls.target.x.toFixed(3),
-      lookAtY: +controls.target.y.toFixed(3),
-      lookAtZ: +controls.target.z.toFixed(3),
-    };
-    Object.assign(viewRuntime.params, partial);
-    syncInputs(partial);
-  });
-
   new MutationObserver(() => {
-    controls.enabled = container.style.display !== 'none';
-    if (!controls.enabled) viewRuntime.apply();
+    if (container.style.display !== 'none') {
+      syncInputs({ ...viewRuntime.params });
+    }
   }).observe(container, { attributes: true, attributeFilter: ['style'] });
 
   if (audio) {
@@ -57,13 +61,16 @@ export function wirePlayfieldDebug(deps) {
   if (level) {
     createPlayfieldDebugUI({
       gltfModel:              level.gltfModel,
+      gltfInner:              level.gltfInner,
       flipperBodies:          level.flipperBodies,
       ballBody:               level.ballBody,
       world:                  deps.world,
       onConfigChange,
       physicsRotateY:         level.physicsRotateY,
-      physicsTranslate:       level.physicsTranslate,
       setPhysicsDebugVisible: level.setPhysicsDebugVisible,
+      obstacles:              level.obstacles,
+      bumpers:                level.bumpers,
+      triggers:               level.triggers,
     });
     createPhysicsDebugUI({
       onTriggerSpecialEvent: deps.onTriggerSpecialEvent,

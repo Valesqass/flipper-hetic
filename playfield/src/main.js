@@ -56,6 +56,9 @@ const viewRuntime = createPlayfieldViewRuntime({
   dirLight,
 });
 
+// attach AFTER apply() has positioned levelGroup — preserves arch world position
+levelGroup.attach(level.archMesh);
+
 window.addEventListener("resize", viewRuntime.onResize);
 
 const serverOverlay = document.createElement("div");

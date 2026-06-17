@@ -34,11 +34,13 @@ function buildTriGeo(base, triH, wallH) {
 
 export function buildBumpers(world, tableMeshes) {
   const syncPairs = [];
+  const bumperDefs = [];
 
   // Arch (invisible physics guide at top) + main triangle obstacle
   const archBody = createArchBody(world);
   const triBody = createTriangleBody(world, { x: 2.8, y: 0, z: -2, rotY: 89 * DEG, base: 2.65, triH: 1.6, wallH: 0.95 });
   syncPairs.push({ mesh: tableMeshes[10], body: triBody });
+  bumperDefs.push({ name: 'Triangle', body: triBody, mesh: tableMeshes[10], ix: 2.8, iy: 0, iz: -2, iry: 89 });
 
   // Cylindrical bumpers (3 orange)
   const CYL_Y = 0.65;
@@ -55,6 +57,7 @@ export function buildBumpers(world, tableMeshes) {
     mesh.geometry = new CylinderGeometry(d.radius, d.radius, d.height, 24);
     mesh.position.set(d.x, d.y, d.z);
     syncPairs.push({ mesh, body });
+    bumperDefs.push({ name: `Bumper Cyl ${i}`, body, mesh, ix: d.x, iy: d.y, iz: d.z, iry: 0, radius: d.radius, height: d.height });
   }
 
   // Large diamond obstacle
@@ -66,6 +69,7 @@ export function buildBumpers(world, tableMeshes) {
   diamondPair.mesh.geometry.dispose();
   diamondPair.mesh.geometry = buildDiamondGeo(DIAMOND_DEF.base, DIAMOND_DEF.triH, DIAMOND_DEF.wallH);
   syncPairs.push(diamondPair);
+  bumperDefs.push({ name: 'Diamond', body: diamondPair.body, mesh: diamondPair.mesh, ix: DIAMOND_DEF.x, iy: DIAMOND_DEF.y, iz: DIAMOND_DEF.z, iry: DIAMOND_DEF.rotY });
 
   // RV area rectangle
   const RV_RECT_DEF = { x: -5.05, y: 0.5, z: -0.7, w: 1.3, h: 1, d: 1.3, rotY: 53 };
@@ -81,6 +85,7 @@ export function buildBumpers(world, tableMeshes) {
   rvRectPair.mesh.geometry.dispose();
   rvRectPair.mesh.geometry = new BoxGeometry(RV_RECT_DEF.w, RV_RECT_DEF.h, RV_RECT_DEF.d);
   syncPairs.push(rvRectPair);
+  bumperDefs.push({ name: 'RV Rect', body: rvRectPair.body, mesh: rvRectPair.mesh, ix: RV_RECT_DEF.x, iy: RV_RECT_DEF.y, iz: RV_RECT_DEF.z, iry: RV_RECT_DEF.rotY, w: RV_RECT_DEF.w, h: RV_RECT_DEF.h, d: RV_RECT_DEF.d });
 
   // RV area triangle
   const RV_TRI_DEF = { x: -3.4, y: 0, z: -2, base: 1.05, triH: 0.6, wallH: 0.9, rotY: -84 };
@@ -91,6 +96,7 @@ export function buildBumpers(world, tableMeshes) {
   rvTriPair.mesh.geometry.dispose();
   rvTriPair.mesh.geometry = buildTriGeo(RV_TRI_DEF.base, RV_TRI_DEF.triH, RV_TRI_DEF.wallH);
   syncPairs.push(rvTriPair);
+  bumperDefs.push({ name: 'RV Triangle', body: rvTriPair.body, mesh: rvTriPair.mesh, ix: RV_TRI_DEF.x, iy: RV_TRI_DEF.y, iz: RV_TRI_DEF.z, iry: RV_TRI_DEF.rotY });
 
   // Small diamond near bumpers
   const DIAMOND2_DEF = { x: 0.95, y: 0, z: -4.75, base: 1.25, triH: 0.8, wallH: 0.9, rotY: 25 };
@@ -101,6 +107,7 @@ export function buildBumpers(world, tableMeshes) {
   diamond2Pair.mesh.geometry.dispose();
   diamond2Pair.mesh.geometry = buildDiamondGeo(DIAMOND2_DEF.base, DIAMOND2_DEF.triH, DIAMOND2_DEF.wallH);
   syncPairs.push(diamond2Pair);
+  bumperDefs.push({ name: 'Diamond 2', body: diamond2Pair.body, mesh: diamond2Pair.mesh, ix: DIAMOND2_DEF.x, iy: DIAMOND2_DEF.y, iz: DIAMOND2_DEF.z, iry: DIAMOND2_DEF.rotY });
 
   // Lower-left triangle (slingshot area)
   const TRI_LEFT_DEF = { x: -3, y: 0, z: 2.5, base: 2, triH: 0.7, wallH: 0.9, rotY: 117 };
@@ -111,6 +118,7 @@ export function buildBumpers(world, tableMeshes) {
   triLeftPair.mesh.geometry.dispose();
   triLeftPair.mesh.geometry = buildTriGeo(TRI_LEFT_DEF.base, TRI_LEFT_DEF.triH, TRI_LEFT_DEF.wallH);
   syncPairs.push(triLeftPair);
+  bumperDefs.push({ name: 'Tri Gauche', body: triLeftPair.body, mesh: triLeftPair.mesh, ix: TRI_LEFT_DEF.x, iy: TRI_LEFT_DEF.y, iz: TRI_LEFT_DEF.z, iry: TRI_LEFT_DEF.rotY });
 
   // Lower-right triangle (slingshot area)
   const TRI_RIGHT_DEF = { x: 1.85, y: 0, z: 2.55, base: 1.9, triH: 0.7, wallH: 0.9, rotY: -115 };
@@ -121,6 +129,7 @@ export function buildBumpers(world, tableMeshes) {
   triRightPair.mesh.geometry.dispose();
   triRightPair.mesh.geometry = buildTriGeo(TRI_RIGHT_DEF.base, TRI_RIGHT_DEF.triH, TRI_RIGHT_DEF.wallH);
   syncPairs.push(triRightPair);
+  bumperDefs.push({ name: 'Tri Droit', body: triRightPair.body, mesh: triRightPair.mesh, ix: TRI_RIGHT_DEF.x, iy: TRI_RIGHT_DEF.y, iz: TRI_RIGHT_DEF.z, iry: TRI_RIGHT_DEF.rotY });
 
-  return { archBody, syncPairs };
+  return { archBody, syncPairs, bumperDefs };
 }

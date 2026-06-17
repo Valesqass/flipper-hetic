@@ -24,11 +24,11 @@ export function buildWalls(world, tableMeshes) {
 
   const wallDefs = {
     table:           { w: TABLE_WIDTH,                       h: TABLE_THICKNESS, d: TABLE_DEPTH,              x: 0,                                     y: -0.3,            z: 0,                                    _material: 'table', _type: 'table', _meshIdx: 0 },
-    wallLeft:        { w: WALL_THICKNESS,                    h: WALL_HEIGHT,     d: TABLE_DEPTH,              x: -TABLE_WIDTH / 2 - WALL_THICKNESS / 2, y: WALL_HEIGHT / 2, z: 0,                                    _meshIdx: 1 },
-    wallRight:       { w: WALL_THICKNESS,                    h: WALL_HEIGHT,     d: TABLE_DEPTH,              x:  TABLE_WIDTH / 2 + WALL_THICKNESS / 2, y: WALL_HEIGHT / 2, z: 0,                                    _meshIdx: 2 },
-    wallTop:         { w: TABLE_WIDTH + WALL_THICKNESS * 2,  h: WALL_HEIGHT,     d: WALL_THICKNESS,           x: 0,                                     y: WALL_HEIGHT / 2, z: -TABLE_DEPTH / 2 - WALL_THICKNESS / 2, _meshIdx: 3 },
-    bottomLeft:      { w: 2.65,                              h: WALL_HEIGHT,     d: WALL_THICKNESS,           x: -3.7,                                  y: WALL_HEIGHT / 2, z: TABLE_DEPTH / 2 + WALL_THICKNESS / 2,  _meshIdx: 4 },
-    bottomRight:     { w: 3.45,                              h: WALL_HEIGHT,     d: WALL_THICKNESS,           x:  2.975,                                y: WALL_HEIGHT / 2, z: TABLE_DEPTH / 2 + WALL_THICKNESS / 2,  _meshIdx: 5 },
+    wallLeft:        { w: WALL_THICKNESS,                    h: WALL_HEIGHT,     d: 28.5,                     x: -5.4,                                  y: WALL_HEIGHT / 2, z: 1.1,                                  _meshIdx: 1 },
+    wallRight:       { w: WALL_THICKNESS,                    h: WALL_HEIGHT,     d: 28.5,                     x:  5.45,                                 y: WALL_HEIGHT / 2, z: 1.1,                                  _meshIdx: 2 },
+    wallTop:         { w: 11.1,                               h: WALL_HEIGHT,     d: WALL_THICKNESS,           x: 0,                                     y: WALL_HEIGHT / 2, z: -13.1,                                  _meshIdx: 3 },
+    bottomLeft:      { w: 2.65,                              h: WALL_HEIGHT,     d: WALL_THICKNESS,           x: -4.2,                                  y: WALL_HEIGHT / 2, z: 12.2,                                   _meshIdx: 4 },
+    bottomRight:     { w: 2.85,                              h: WALL_HEIGHT,     d: WALL_THICKNESS,           x:  2.7,                                  y: WALL_HEIGHT / 2, z: 12.3,                                   _meshIdx: 5 },
     tunnel:          { w: WALL_THICKNESS,                    h: WALL_HEIGHT,     d: 9.75,                     x: TUNNEL_WALL_X,                         y: WALL_HEIGHT / 2, z: 1.65,                                  _meshIdx: 6 },
     glass:           { w: TABLE_WIDTH + WALL_THICKNESS * 2,  h: 0.1,             d: TABLE_DEPTH + 6,          x: 0,                                     y: 0.7,             z: 0 },
     dropBorderLeft:  { w: WALL_THICKNESS, h: WALL_HEIGHT, d: 3.95, x: -3.05, y: WALL_HEIGHT / 2, z: 6.3,  ry:  60, _meshIdx: 8 },
