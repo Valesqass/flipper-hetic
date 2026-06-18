@@ -35,6 +35,9 @@ export function startPlayfieldLoop(deps) {
   } = deps;
 
   const resolveCamera = typeof getCamera === "function" ? getCamera : () => camera;
+  const renderFn = typeof deps.renderFn === 'function'
+    ? deps.renderFn
+    : () => renderer.render(scene, resolveCamera());
 
   let lastTime = performance.now();
   let accumulator = 0;
@@ -64,7 +67,7 @@ export function startPlayfieldLoop(deps) {
     }
 
     syncMeshesWithBodies(syncPairs);
-    renderer.render(scene, resolveCamera());
+    renderFn();
   }
 
   if (typeof onResize === "function") {

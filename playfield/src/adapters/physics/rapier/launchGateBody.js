@@ -14,11 +14,11 @@ import { getRapier } from "./init.js";
 import { createBodyHandle } from "./bodyHandle.js";
 import { MATERIALS } from "./world.js";
 
-const GATE_X        = 3.55;
-const GATE_Z        = -4.3;
-const GATE_W        = 3.55;
+const GATE_X        = 4;
+const GATE_Z        = -8.75;
+const GATE_W        = 5.7;
 const GATE_H        = 1;
-const GATE_D        = 0.15;
+const GATE_D        = 0.35;
 const GATE_ROTY_DEG = 90;
 const GATE_Y_CLOSED = WALL_HEIGHT / 2;
 const GATE_Y_OPEN   = -10;

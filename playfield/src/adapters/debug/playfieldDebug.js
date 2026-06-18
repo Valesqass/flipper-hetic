@@ -10,11 +10,12 @@ import {
 } from '../../domain/constants.js';
 import { PLAYFIELD_VIEW_DEFAULTS } from '../../domain/viewConfig.js';
 import { applyPhysicsGravity } from '../physics/rapier/world.js';
+import { setBallFixedY } from '../physics/rapier/ballBody.js';
 
 const DEG = Math.PI / 180;
 const RESET_BTN_CSS = 'padding:1px 5px;background:transparent;color:#0ff;border:1px solid #0ff;border-radius:3px;cursor:pointer;font-size:11px;flex-shrink:0;line-height:1.4';
 
-export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ballBody, world, onConfigChange, physicsRotateY, setPhysicsDebugVisible, obstacles, bumpers, triggers }) {
+export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ballBody, world, onConfigChange, physicsRotateY, setPhysicsDebugVisible, triggers }) {
   const defaults = {
     glbScaleY: GLB_SCALE_Y,
     glbScaleZ: GLB_SCALE_Z,
@@ -85,10 +86,12 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ba
     if (physicsRotateY) physicsRotateY(state.worldRotY);
   }
 
+
   function applyBall() {
     if (!ballBody?.rb) return;
+    setBallFixedY(state.spawnY);
     ballBody.rb.setBodyType(2, true);
-    ballBody.rb.setTranslation({ x: state.spawnX, y: state.spawnY, z: state.spawnZ }, true);
+    ballBody.rb.setNextKinematicTranslation({ x: state.spawnX, y: state.spawnY, z: state.spawnZ });
     ballBody.rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
     ballBody.rb.setAngvel({ x: 0, y: 0, z: 0 }, true);
     ballBody.userData.launched = false;
@@ -143,6 +146,7 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ba
       title: '▸ Ball Spawn',
       rows: [
         { key: 'spawnX', label: 'Spawn X', min: -6,  max: 6,  step: 0.05, apply: applyBall },
+        { key: 'spawnY', label: 'Spawn Y', min: -2,  max: 5,  step: 0.05, apply: applyBall },
         { key: 'spawnZ', label: 'Spawn Z', min: 0,   max: 12, step: 0.05, apply: applyBall },
       ],
     },
@@ -254,6 +258,7 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ba
     const cs = { x: comp.ix, y: comp.iy, z: comp.iz, rx: comp.irx ?? 0, ry: comp.iry, rz: comp.irz ?? 0 };
     if (comp.w != null) { cs.w = comp.w; cs.h = comp.h; cs.d = comp.d; }
     if (comp.radius != null) { cs.radius = comp.radius; cs.height = comp.height; }
+    if (comp.shapeControls) { for (const sc of comp.shapeControls) cs[sc.key] = sc.default; }
     const cd = { ...cs };
     const changeFns = {};
 
@@ -359,6 +364,12 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ba
       rows.appendChild(makeCompRow('radius', 'Rayon',   0.05, 3, 0.05, applySize));
       rows.appendChild(makeCompRow('height', 'Hauteur', 0.05, 5, 0.05, applySize));
     }
+    if (comp.shapeControls) {
+      for (const sc of comp.shapeControls) {
+        rows.appendChild(makeCompRow(sc.key, sc.label, sc.min, sc.max, sc.step,
+          () => comp.onShapeChange(sc.key, cs[sc.key])));
+      }
+    }
 
     let expanded = false;
     compHdr.addEventListener('click', () => {
@@ -390,9 +401,7 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ba
     panel.appendChild(sec);
   }
 
-  makeComponentSection('▸ Obstacles', obstacles, 'obstacles');
-  makeComponentSection('▸ Bumpers',   bumpers,   'bumpers');
-  makeComponentSection('▸ Triggers',  triggers,  'triggers');
+  makeComponentSection('▸ Triggers', triggers, 'triggers');
 
   // ── Controls ─────────────────────────────────────────────────────────────
 

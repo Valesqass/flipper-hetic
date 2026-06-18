@@ -2,6 +2,7 @@ import { createDebugUI } from "./ui.js";
 import { createAudioDebugUI } from "./audioDebug.js";
 import { createPlayfieldDebugUI } from "./playfieldDebug.js";
 import { createPhysicsDebugUI } from "./physicsDebug.js";
+import { createLightsDebugUI } from "./lightsDebug.js";
 
 function createAspectOverlay() {
   const overlay = document.createElement("div");
@@ -37,7 +38,7 @@ function createAspectOverlay() {
 }
 
 export function wirePlayfieldDebug(deps) {
-  const { viewRuntime, audio, onResetHighScore, onResetBall, level } = deps;
+  const { viewRuntime, audio, onResetHighScore, onResetBall, level, renderer, ambientLight, dirLight, pointLights, bloomPass, composer } = deps;
   createAspectOverlay();
 
   if (level) level.setPhysicsDebugVisible(true);
@@ -68,13 +69,15 @@ export function wirePlayfieldDebug(deps) {
       onConfigChange,
       physicsRotateY:         level.physicsRotateY,
       setPhysicsDebugVisible: level.setPhysicsDebugVisible,
-      obstacles:              level.obstacles,
-      bumpers:                level.bumpers,
       triggers:               level.triggers,
     });
     createPhysicsDebugUI({
       onTriggerSpecialEvent: deps.onTriggerSpecialEvent,
     });
+  }
+
+  if (ambientLight && dirLight) {
+    createLightsDebugUI({ renderer, ambientLight, dirLight, pointLights: pointLights ?? [], bloomPass });
   }
 
   console.log("[debug] menu initialized — press ` to toggle");

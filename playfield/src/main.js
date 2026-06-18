@@ -1,4 +1,5 @@
 import { createScene } from "./adapters/renderer/scene.js";
+import { createBloom } from "./adapters/renderer/bloom.js";
 import {
   initRapier,
   createPhysicsWorld,
@@ -41,7 +42,7 @@ const audioHud = document.getElementById("audio-hud");
 if (audioHud) audioHud.style.display = "none";
 const actuators = createActuators(audio);
 
-const { scene, camera, renderer, dirLight } = createScene();
+const { scene, camera, renderer, ambientLight, dirLight, pointLights } = createScene();
 const world = createPhysicsWorld();
 const level = await buildLevel({ scene, world });
 const levelGroup = groupLevelMeshes(scene, level.syncPairs);
@@ -57,9 +58,12 @@ const viewRuntime = createPlayfieldViewRuntime({
 });
 
 // attach AFTER apply() has positioned levelGroup — preserves arch world position
-levelGroup.attach(level.archMesh);
+if (level.archMesh) levelGroup.attach(level.archMesh);
 
 window.addEventListener("resize", viewRuntime.onResize);
+
+const { composer, bloomPass, renderPass, onResize: onBloomResize } = createBloom(renderer, scene, camera);
+window.addEventListener("resize", onBloomResize);
 
 const serverOverlay = document.createElement("div");
 serverOverlay.style.cssText = [
@@ -83,7 +87,11 @@ const readyDebug = async () => {
     scene,
     levelGroup,
     world,
+    ambientLight,
     dirLight,
+    pointLights,
+    bloomPass,
+    composer,
     audio,
     level,
     onResetHighScore: () => {
@@ -227,4 +235,8 @@ startPlayfieldLoop({
   scene,
   getCamera: viewRuntime.getCamera,
   gameState,
+  renderFn: () => {
+    renderPass.camera = viewRuntime.getCamera();
+    composer.render();
+  },
 });

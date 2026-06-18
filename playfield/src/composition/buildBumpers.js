@@ -1,4 +1,4 @@
-import { BoxGeometry, CylinderGeometry, ExtrudeGeometry, Shape, Vector2 } from 'three';
+import { BoxGeometry, CylinderGeometry, ExtrudeGeometry, Shape, Vector2, Vector3, TubeGeometry, CatmullRomCurve3 } from 'three';
 import {
   createStaticBoxBody,
   createArchBody,
@@ -6,6 +6,11 @@ import {
   createCylinderBody,
   createDiamondBody,
 } from "../adapters/physics/index.js";
+import { bodyHandlesByRapierHandle } from '../adapters/physics/rapier/bodyHandle.js';
+import {
+  ARCH_HALF_WIDTH, ARCH_HALF_DEPTH, ARCH_HEIGHT, ARCH_CENTER_Z,
+  ARCH_OFFSET_X, ARCH_OFFSET_Y, ARCH_OFFSET_Z, ARCH_SEGMENTS,
+} from '../domain/constants.js';
 
 const DEG = Math.PI / 180;
 
@@ -36,28 +41,56 @@ export function buildBumpers(world, tableMeshes) {
   const syncPairs = [];
   const bumperDefs = [];
 
-  // Arch (invisible physics guide at top) + main triangle obstacle
+  // Arch (physics guide at top) + main triangle obstacle (passive — no score, no sound)
   const archBody = createArchBody(world);
   const triBody = createTriangleBody(world, { x: 2.8, y: 0, z: -2, rotY: 89 * DEG, base: 2.65, triH: 1.6, wallH: 0.95 });
   syncPairs.push({ mesh: tableMeshes[10], body: triBody });
-  bumperDefs.push({ name: 'Triangle', body: triBody, mesh: tableMeshes[10], ix: 2.8, iy: 0, iz: -2, iry: 89 });
+  const triangleDef = { name: 'Triangle', body: triBody, mesh: tableMeshes[10], ix: 2.8, iy: 0, iz: -2, iry: 89 };
+
+  // Arch rebuild — destroys + recreates physics body + updates debug mesh geometry
+  const archDefaults = {
+    halfWidth: ARCH_HALF_WIDTH, halfDepth: ARCH_HALF_DEPTH, height: ARCH_HEIGHT,
+    centerZ: ARCH_CENTER_Z, offsetX: ARCH_OFFSET_X, offsetY: ARCH_OFFSET_Y, offsetZ: ARCH_OFFSET_Z,
+    wallThickness: 1.1,
+  };
+  const currentArchParams = { ...archDefaults, segments: ARCH_SEGMENTS };
+  function rebuildArch(newParams) {
+    Object.assign(currentArchParams, newParams);
+    const oldHandle = archBody.rb.handle;
+    world.removeRigidBody(archBody.rb);
+    bodyHandlesByRapierHandle.delete(oldHandle);
+    const newBody = createArchBody(world, currentArchParams);
+    bodyHandlesByRapierHandle.delete(newBody.rb.handle);
+    bodyHandlesByRapierHandle.set(newBody.rb.handle, archBody);
+    archBody.rb = newBody.rb;
+    archBody.colliders = newBody.colliders;
+    const { halfWidth, halfDepth, height, centerZ, segments, offsetX, offsetY, offsetZ } = currentArchParams;
+    const pts = [];
+    for (let i = 0; i <= segments * 2; i++) {
+      const theta = (i / (segments * 2) - 0.5) * Math.PI;
+      pts.push(new Vector3(halfWidth * Math.sin(theta), height / 2, centerZ - halfDepth * Math.cos(theta)));
+    }
+    tableMeshes[7].geometry.dispose();
+    tableMeshes[7].geometry = new TubeGeometry(new CatmullRomCurve3(pts), segments * 2, 0.55, 6, false);
+    tableMeshes[7].position.set(offsetX, offsetY, offsetZ);
+  }
 
   // Cylindrical bumpers (3 orange)
   const CYL_Y = 0.65;
   const CYLINDER_DEFS = [
-    { x: 1.7,  y: CYL_Y, z: -3.2, radius: 0.4, height: 1.3 },
-    { x: 0.3,  y: CYL_Y, z: -2.7, radius: 0.4, height: 1.3 },
-    { x: 0.75, y: CYL_Y, z: -1.2, radius: 0.4, height: 1.3 },
+    { x: 2,   y: CYL_Y, z: -6.7, radius: 0.45, height: 1.3, rotX: 5 },
+    { x: 0.4, y: CYL_Y, z: -5.8, radius: 0.45, height: 1.3, rotX: 5 },
+    { x: 0.9, y: CYL_Y, z: -2.9, radius: 0.45, height: 1.3, rotX: 5 },
   ];
   for (let i = 0; i < CYLINDER_DEFS.length; i++) {
     const d = CYLINDER_DEFS[i];
-    const body = createCylinderBody(world, { ...d, rotY: 0, type: `bumper-cyl-${i}` });
+    const body = createCylinderBody(world, { ...d, rotX: d.rotX * DEG, rotY: 0, type: `bumper-cyl-${i}` });
     const mesh = tableMeshes[17 + i];
     mesh.geometry.dispose();
     mesh.geometry = new CylinderGeometry(d.radius, d.radius, d.height, 24);
     mesh.position.set(d.x, d.y, d.z);
     syncPairs.push({ mesh, body });
-    bumperDefs.push({ name: `Bumper Cyl ${i}`, body, mesh, ix: d.x, iy: d.y, iz: d.z, iry: 0, radius: d.radius, height: d.height });
+    bumperDefs.push({ name: `Bumper Cyl ${i}`, body, mesh, ix: d.x, iy: d.y, iz: d.z, irx: d.rotX, iry: 0, radius: d.radius, height: d.height });
   }
 
   // Large diamond obstacle
@@ -131,5 +164,5 @@ export function buildBumpers(world, tableMeshes) {
   syncPairs.push(triRightPair);
   bumperDefs.push({ name: 'Tri Droit', body: triRightPair.body, mesh: triRightPair.mesh, ix: TRI_RIGHT_DEF.x, iy: TRI_RIGHT_DEF.y, iz: TRI_RIGHT_DEF.z, iry: TRI_RIGHT_DEF.rotY });
 
-  return { archBody, syncPairs, bumperDefs };
+  return { archBody, syncPairs, bumperDefs, triangleDef, rebuildArch, archDefaults };
 }
