@@ -77,12 +77,8 @@ function scheduleGameOverUnlock(io) {
       if (state.status !== "game_over") {
         return;
       }
-      // Move to idle and clear transient gameplay fields while preserving highScore
-      state.status = "idle";
-      state.score = 0;
-      state.ballsLeft = 3;
-      state.currentBall = 1;
-      state.lastEvent = null;
+      // Transition metier deleguee au domaine (preserve le highScore).
+      state.resetToIdle();
       emitState(io);
       emitDmd(io, "PRESS START");
     }, GAME_OVER_BLOCK_MS);

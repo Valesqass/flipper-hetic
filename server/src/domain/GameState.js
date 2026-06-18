@@ -34,6 +34,16 @@ export class GameState {
     this.lastEvent = "start_game";
   }
 
+  /**
+   * Remet l'etat a "idle" (fin du verrou game_over) en effacant les champs de
+   * partie transitoires, mais en preservant le high score.
+   */
+  resetToIdle() {
+    const preservedHigh = this.highScore || 0;
+    Object.assign(this, structuredClone(INITIAL));
+    this.highScore = preservedHigh;
+  }
+
   applyCollision(type) {
     if (!this.isPlaying) return false;
     if (!isValidCollisionType(type)) return false;

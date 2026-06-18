@@ -29,8 +29,6 @@ export const PLAYFIELD_VIEW_DEFAULTS = {
   dirLightIntensity: 0.8,
 };
 
-const DEG = Math.PI / 180;
-
 export function applyViewConfigToPerspectiveCamera(
   camera,
   config = PLAYFIELD_VIEW_DEFAULTS,
@@ -42,16 +40,4 @@ export function applyViewConfigToPerspectiveCamera(
   camera.up.set(config.cameraUpX, config.cameraUpY, config.cameraUpZ).normalize();
   camera.lookAt(config.lookAtX, config.lookAtY, config.lookAtZ);
   camera.updateProjectionMatrix();
-}
-
-export function applyViewConfigToLevelGroup(
-  group,
-  config = PLAYFIELD_VIEW_DEFAULTS,
-) {
-  group.position.set(config.levelPosX, config.levelPosY, config.levelPosZ);
-  group.rotation.set(
-    config.levelRotX * DEG,
-    config.levelRotY * DEG,
-    config.levelRotZ * DEG,
-  );
 }
