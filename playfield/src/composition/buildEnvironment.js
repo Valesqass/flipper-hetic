@@ -87,7 +87,7 @@ export function buildEnvironment(world) {
     const ox = Math.random();
     const oy = Math.random();
     const mat = new THREE.MeshStandardMaterial({
-      color: 0xffe600, // jaune chantier / toxic
+      color: 0xccff00, // jaune fluo toxic/danger (assorti aux batteurs)
       metalness: 0.2,
       roughness: 1,
       // Emissif ambre chaud (et non olive) : dans la penombre les murs lisent

@@ -102,8 +102,10 @@ export function mountBackglassRoot() {
           <img class="backglass__element" src="/assets/img/Ba-ballsleft.png" alt="Balls left element" />
           <div class="backglass__metric-label">lls left</div>
           <div id="ballsLeftValue" class="backglass__balls" role="img" aria-label="Balles restantes">
-            ${methBag()}${methBag()}${methBag()}
             <span id="ballsCount" class="backglass__balls-count">3/3</span>
+            <div class="backglass__balls-row">
+              ${methBag()}${methBag()}${methBag()}
+            </div>
           </div>
         </div>
       </div>

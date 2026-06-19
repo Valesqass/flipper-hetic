@@ -56,7 +56,7 @@ export function createScene() {
   // Ambient rouge chaude : remplit les ombres d'une lueur braise plutot que de
   // les laisser neutres/noires -> renforce l'ambiance desertique.
   const ambientLight = new THREE.AmbientLight(
-    0xff3d1a,
+    0xffffff,
     PLAYFIELD_VIEW_DEFAULTS.ambientIntensity,
   );
   scene.add(ambientLight);
