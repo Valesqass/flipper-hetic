@@ -17,7 +17,14 @@ function createOneFlipperMesh(scene, side) {
   geometry.translate(shapeOffsetX, 0, 0);
   const mesh = new THREE.Mesh(
     geometry,
-    new THREE.MeshStandardMaterial({ color: 0xff6600, metalness: 0.5, roughness: 0.5 }),
+    // Jaune fluo "toxic/danger" : couleur vive + emissive pour un glow radioactif.
+    new THREE.MeshStandardMaterial({
+      color: 0xd6d24a,
+      emissive: 0x6b6a1a,
+      emissiveIntensity: 0.3,
+      metalness: 0.3,
+      roughness: 0.35,
+    }),
   );
   mesh.position.set(pivotX, FLIPPER_PIVOT_Y, FLIPPER_PIVOT_Z);
   scene.add(mesh);
