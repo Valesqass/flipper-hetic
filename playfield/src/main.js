@@ -30,7 +30,7 @@ const physicsWorld = new PhysicsWorld();
 let levelRef = null;
 const collisionHandler = new CollisionHandler({
   onCollision: (type) => {
-    const serverType = type.startsWith('bumper') ? (BUMPER_SERVER_TYPE[type] ?? 'bumper') : type;
+    const serverType = type.startsWith('bumper') ? (BUMPER_SERVER_TYPE[type] ?? type) : type;
     network.emitCollision(serverType);
     if (type.startsWith('bumper')) actuators.onBumperHit();
     else if (type === 'slingshot') actuators.onSlingshotHit();

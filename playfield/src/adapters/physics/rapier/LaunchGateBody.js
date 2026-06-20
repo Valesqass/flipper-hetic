@@ -2,12 +2,16 @@ import { WALL_HEIGHT } from "../../../domain/constants.js";
 import { getRapier } from "./init.js";
 import { MATERIALS, createBodyHandle } from "./PhysicsWorld.js";
 
-const GATE_X        = 4;
-const GATE_Z        = -8.75;
-const GATE_W        = 5.7;
-const GATE_H        = 1;
-const GATE_D        = 0.35;
-const GATE_ROTY_DEG = 90;
+const GATE_X          = 2.85;
+const GATE_Z          = -11.95;
+const GATE_W          = 3.05;
+const GATE_H          = 1;
+const GATE_D          = 0.35;
+const GATE_ROTY_DEG   = 90;
+const GATE_TRIGGER_X    = 2.45;
+const GATE_TRIGGER_Z    = -11.5;
+const GATE_TRIGGER_W    = 6.3;
+const GATE_TRIGGER_ROTY = 90;
 const GATE_Y_CLOSED = WALL_HEIGHT / 2;
 const GATE_Y_OPEN   = -10;
 
@@ -37,8 +41,9 @@ class LaunchGateBody {
 
     this.#userData = {
       type: "launch_gate", state: "open",
-      closedX: GATE_X, closedZ: GATE_Z,
+      closedX: GATE_X, closedZ: GATE_Z, closedY: GATE_Y_CLOSED,
       w: GATE_W, h: GATE_H, d: GATE_D, rotY: GATE_ROTY_DEG,
+      triggerX: GATE_TRIGGER_X, triggerZ: GATE_TRIGGER_Z, triggerW: GATE_TRIGGER_W, triggerRotY: GATE_TRIGGER_ROTY,
     };
     this.#colliders = [collider];
 
@@ -56,14 +61,13 @@ class LaunchGateBody {
   }
 
   close() {
-    this.#rb.setTranslation({ x: this.#userData.closedX, y: GATE_Y_CLOSED, z: this.#userData.closedZ }, true);
+    this.#rb.setTranslation({ x: this.#userData.closedX, y: this.#userData.closedY, z: this.#userData.closedZ }, true);
     this.#userData.state = "closed";
   }
 
-  update(ballZ) {
+  update(ballPos) {
     if (this.#userData.state !== "open") return;
-    const triggerZ = this.#userData.closedZ - this.#userData.d / 2;
-    if (ballZ < triggerZ && this.#userData.pendingCloseAt === undefined) {
+    if (ballPos.x < this.#userData.triggerX && this.#userData.pendingCloseAt === undefined) {
       this.#userData.pendingCloseAt = performance.now() + 140;
     }
     if (this.#userData.pendingCloseAt !== undefined && performance.now() >= this.#userData.pendingCloseAt) {

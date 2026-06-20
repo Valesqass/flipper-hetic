@@ -4,7 +4,7 @@ import { createBallMesh } from "../adapters/renderer/ballMesh.js";
 import { createFlipperMeshes } from "../adapters/renderer/flipperMesh.js";
 import { createLaunchGateMesh } from "../adapters/renderer/launchGateMesh.js";
 
-export function buildActors(physicsWorld, scene) {
+export async function buildActors(physicsWorld, scene) {
   const syncPairs = [];
 
   const ballMesh = createBallMesh(scene);
@@ -12,9 +12,7 @@ export function buildActors(physicsWorld, scene) {
   const ballBody = new BallBody(physicsWorld);
   syncPairs.push({ mesh: ballMesh, body: ballBody });
 
-  const flipperMeshes = createFlipperMeshes(scene);
-  flipperMeshes.left.castShadow = true;
-  flipperMeshes.right.castShadow = true;
+  const flipperMeshes = await createFlipperMeshes(scene);
   const flipperBodies = new FlipperBody(physicsWorld);
   syncPairs.push(
     { mesh: flipperMeshes.left,  body: flipperBodies.left.body },

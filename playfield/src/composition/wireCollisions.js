@@ -14,7 +14,7 @@ export function wireCollisions(physicsWorld, level, collisionHandler) {
 
     collisionHandler.handleCollision(otherBody.userData?.type, performance.now(), {
       ballPos: level.ballBody.rb.translation(),
-      otherPos: otherRb.translation(),
+      otherPos: otherBody.userData?.center ?? otherRb.translation(),
     });
   });
 }

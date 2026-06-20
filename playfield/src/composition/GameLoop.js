@@ -53,7 +53,7 @@ export default class GameLoop {
       this.#accumulator -= FIXED_TIME_STEP;
     }
 
-    this.#launchGateBody.update(this.#ballBody.position.z);
+    this.#launchGateBody.update(this.#ballBody.position);
 
     if (this.#collisionHandler.checkDrain(this.#ballBody.position.z, this.#gameState.status)) {
       this.#ballBody.reset();

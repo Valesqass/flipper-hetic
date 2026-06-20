@@ -13,7 +13,7 @@ import { PLAYFIELD_VIEW_DEFAULTS } from '../../domain/viewConfig.js';
 const DEG = Math.PI / 180;
 const RESET_BTN_CSS = 'padding:1px 5px;background:transparent;color:#0ff;border:1px solid #0ff;border-radius:3px;cursor:pointer;font-size:11px;flex-shrink:0;line-height:1.4';
 
-export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ballBody, world, onConfigChange, physicsRotateY, setPhysicsDebugVisible, triggers }) {
+export function createPlayfieldDebugUI({ gltfModel, gltfInner, extrasGroup, flipperBodies, ballBody, world, onConfigChange, physicsRotateY, setPhysicsDebugVisible, triggers, bumpers }) {
   const defaults = {
     glbScaleY: GLB_SCALE_Y,
     glbScaleZ: GLB_SCALE_Z,
@@ -39,6 +39,10 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ba
     worldRotX: 0,
     worldRotY: 0,
     worldRotZ: 0,
+    extrasScale: 1,
+    extrasPosX:  0,
+    extrasPosY:  0,
+    extrasPosZ:  0,
   };
 
   const state = { ...defaults };
@@ -84,6 +88,11 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ba
     if (physicsRotateY) physicsRotateY(state.worldRotY);
   }
 
+  function applyExtras() {
+    if (!extrasGroup) return;
+    extrasGroup.scale.setScalar(state.extrasScale);
+    extrasGroup.position.set(state.extrasPosX, state.extrasPosY, state.extrasPosZ);
+  }
 
   function applyBall() {
     if (!ballBody?.rb) return;
@@ -161,6 +170,15 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ba
         { key: 'worldRotX', label: 'Rotate X (°)', min: -180, max: 180, step: 1, apply: applyWorldRot },
         { key: 'worldRotY', label: 'Rotate Y (°)', min: -180, max: 180, step: 1, apply: applyWorldRot },
         { key: 'worldRotZ', label: 'Rotate Z (°)', min: -180, max: 180, step: 1, apply: applyWorldRot },
+      ],
+    },
+    {
+      title: '▸ GLB Extras (obstacles + bumpers)',
+      rows: [
+        { key: 'extrasScale', label: 'Scale',    min: 0.1, max: 5,  step: 0.01, apply: applyExtras },
+        { key: 'extrasPosX', label: 'Offset X',  min: -10, max: 10, step: 0.05, apply: applyExtras },
+        { key: 'extrasPosY', label: 'Offset Y',  min: -15, max: 5,  step: 0.05, apply: applyExtras },
+        { key: 'extrasPosZ', label: 'Offset Z',  min: -10, max: 10, step: 0.05, apply: applyExtras },
       ],
     },
   ];
@@ -399,6 +417,7 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ba
     panel.appendChild(sec);
   }
 
+  makeComponentSection('▸ Bumpers', bumpers, 'bumpers');
   makeComponentSection('▸ Triggers', triggers, 'triggers');
 
   // ── Controls ─────────────────────────────────────────────────────────────
