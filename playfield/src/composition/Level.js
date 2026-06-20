@@ -1,14 +1,15 @@
 import { Mesh, BoxGeometry, MeshBasicMaterial, Group, DoubleSide } from 'three';
 import { buildEnvironment } from './buildEnvironment.js';
 import { buildGLBCollisions } from './buildGLBCollisions.js';
-import { buildActors } from './buildActors.js';
 import ModelLoader from '../adapters/renderer/modelLoader.js';
+import { BallActor }        from '../actors/BallActor.js';
+import { FlipperActor }     from '../actors/FlipperActor.js';
+import { LaunchGateActor }  from '../actors/LaunchGateActor.js';
+import { SlingshotActor }   from '../actors/SlingshotActor.js';
 import {
   DRAIN_Z_THRESHOLD,
   DRAIN_OPENING_WIDTH,
   PLAYABLE_CENTER_X,
-  TABLE_WIDTH,
-  TABLE_DEPTH,
 } from '../domain/constants.js';
 
 const DEG = Math.PI / 180;
@@ -18,20 +19,25 @@ export default class Level {
   #physicsWorld;
   #onDrainZChange;
   #drainMesh = null;
-  #triggerVizMesh = null;
 
-  ballBody = null;
-  flipperBodies = null;
-  launchGateBody = null;
-  syncPairs = [];
-  gltfModel = null;
-  gltfInner = null;
-  gltfExtras = [];
-  extrasGroup = null;
-  archMesh = null;
+  // Actors — the core game objects
+  ballActor        = null;
+  flipperActor     = null;
+  launchGateActor  = null;
+  slingshotActor   = null;
+
+  /** Ordered list of all actors iterated by GameLoop. */
+  actors = [];
+
+  // Scene graph
+  extrasGroup  = null;
+  slingshotGroup = null;
+  archMesh     = null;
+  group        = null;
+
+  // Debug data
+  bumpers  = [];
   triggers = [];
-  bumpers = [];
-  group = null;
 
   constructor({ scene, physicsWorld, onDrainZChange = () => {} }) {
     this.#scene = scene;
@@ -42,6 +48,7 @@ export default class Level {
   async build() {
     const { group: envGroup } = buildEnvironment(this.#physicsWorld);
 
+    // --- GLB extra models (bumpers + obstacles) ---
     const extraScenes = await new ModelLoader().loadExtra();
     const extrasGroup = new Group();
     extrasGroup.name = 'playfield-extras';
@@ -52,17 +59,26 @@ export default class Level {
       buildGLBCollisions(this.#physicsWorld, m);
     }
 
-    this.#physicsWorld.createStaticBox({
-      width: TABLE_WIDTH + 2,
-      height: 0.1,
-      depth: TABLE_DEPTH + 2,
-      position: { x: 0, y: 0.95, z: 0 },
-      type: 'table',
-    });
+    // Slingshot group: Obstacle-flipper GLBs move to their own group
+    const slingshotGroup = new Group();
+    slingshotGroup.name = 'slingshot-group';
+    const slingshotNames = new Set(['Obstacle-flipper1', 'Obstacle-flipper2']);
+    for (const m of extraScenes) {
+      if (slingshotNames.has(m.name)) {
+        extrasGroup.remove(m);
+        slingshotGroup.add(m);
+      }
+    }
+    slingshotGroup.position.set(0.25, 0, 0);
+    extrasGroup.add(slingshotGroup);
 
-    const { ballBody, flipperBodies, launchGateBody, launchGateMesh, syncPairs: actorPairs } =
-      await buildActors(this.#physicsWorld, this.#scene);
+    // --- Actors ---
+    const ballActor       = new BallActor(this.#physicsWorld, this.#scene);
+    const flipperActor    = await FlipperActor.create(this.#physicsWorld, this.#scene);
+    const launchGateActor = LaunchGateActor.create(this.#physicsWorld, this.#scene, ballActor);
+    const slingshotActor  = new SlingshotActor(this.#physicsWorld);
 
+    // --- Debug drain mesh ---
     const drainMesh = new Mesh(
       new BoxGeometry(DRAIN_OPENING_WIDTH, 0.6, 0.5),
       new MeshBasicMaterial({ color: 0xff2200, transparent: true, opacity: 0.5, side: DoubleSide, depthWrite: false }),
@@ -72,37 +88,31 @@ export default class Level {
     envGroup.add(drainMesh);
     this.#drainMesh = drainMesh;
 
-    const triggerViz = new Mesh(
-      new BoxGeometry(launchGateBody.userData.triggerW, 0.08, 0.08),
-      new MeshBasicMaterial({ color: 0x00aaff, transparent: true, opacity: 0.6, depthWrite: false }),
-    );
-    triggerViz.position.set(launchGateBody.userData.triggerX, 0.3, launchGateBody.userData.triggerZ);
-    triggerViz.rotation.y = launchGateBody.userData.triggerRotY * DEG;
-    triggerViz.visible = false;
-    envGroup.add(triggerViz);
-    this.#triggerVizMesh = triggerViz;
-
+    // --- Level group: collect all actor meshes + environment ---
     const levelGroup = new Group();
     levelGroup.name = 'playfield-level';
     this.#scene.add(levelGroup);
-    const seen = new Set();
-    for (const { mesh } of actorPairs) {
-      if (seen.has(mesh)) continue;
-      seen.add(mesh);
-      if (mesh.parent) mesh.parent.remove(mesh);
-      levelGroup.add(mesh);
+
+    const actors = [ballActor, flipperActor, launchGateActor, slingshotActor];
+    for (const actor of actors) {
+      for (const mesh of actor.meshes) {
+        if (mesh.parent) mesh.parent.remove(mesh);
+        levelGroup.add(mesh);
+      }
     }
     levelGroup.add(envGroup);
 
-    this.ballBody = ballBody;
-    this.flipperBodies = flipperBodies;
-    this.launchGateBody = launchGateBody;
-    this.launchGateMesh = launchGateMesh;
-    this.syncPairs = [...actorPairs];
-    this.gltfModel = envGroup;
-    this.gltfInner = envGroup;
-    this.gltfExtras = extraScenes;
-    this.extrasGroup = extrasGroup;
+    // --- Assign public properties ---
+    this.ballActor       = ballActor;
+    this.flipperActor    = flipperActor;
+    this.launchGateActor = launchGateActor;
+    this.slingshotActor  = slingshotActor;
+    this.actors          = actors;
+    this.extrasGroup     = extrasGroup;
+    this.slingshotGroup  = slingshotGroup;
+    this.group           = levelGroup;
+
+    // --- Debug bumpers (visual controls only) ---
     this.bumpers = extraScenes
       .filter(s => s.name.startsWith('Bumper-'))
       .map(s => {
@@ -112,16 +122,12 @@ export default class Level {
           body: {
             rb: {
               setTranslation: ({ x, y, z }) => s.position.set(x, y, z),
-              setRotation: (q) => s.quaternion.set(q.x, q.y, q.z, q.w),
+              setRotation:    (q)           => s.quaternion.set(q.x, q.y, q.z, q.w),
             },
             colliders: [],
           },
-          ix: s.position.x,
-          iy: s.position.y,
-          iz: s.position.z,
-          irx: s.rotation.x / DEG,
-          iry: s.rotation.y / DEG,
-          irz: s.rotation.z / DEG,
+          ix: s.position.x, iy: s.position.y, iz: s.position.z,
+          irx: s.rotation.x / DEG, iry: s.rotation.y / DEG, irz: s.rotation.z / DEG,
           shapeControls: [
             { key: 'scale', label: 'Scale', min: 0.01, max: 5, step: 0.05, default: 1.0 },
           ],
@@ -130,7 +136,8 @@ export default class Level {
           },
         };
       });
-    this.group = levelGroup;
+
+    // --- Debug triggers (only Drain Zone remains) ---
     this.triggers = [
       {
         name: 'Drain Zone',
@@ -150,69 +157,26 @@ export default class Level {
         ix: PLAYABLE_CENTER_X, iy: 0.3, iz: DRAIN_Z_THRESHOLD, iry: 0,
         w: DRAIN_OPENING_WIDTH, h: 0.6, d: 0.5,
       },
-      {
-        name: 'Gate (porte)',
-        body: {
-          rb: {
-            setTranslation: ({ x, y, z }) => {
-              launchGateBody.userData.closedX = x;
-              launchGateBody.userData.closedY = y;
-              launchGateBody.userData.closedZ = z;
-              launchGateBody.rb.setTranslation({ x, y, z }, true);
-            },
-            setRotation: (q) => launchGateBody.rb.setRotation(q, true),
-          },
-          colliders: [{
-            setHalfExtents: ({ x, y, z }) => {
-              launchGateBody.userData.w = x * 2;
-              launchGateBody.userData.h = y * 2;
-              launchGateBody.userData.d = z * 2;
-              launchGateBody.colliders[0].setHalfExtents({ x, y, z });
-            },
-          }],
-        },
-        mesh: launchGateMesh,
-        ix: launchGateBody.userData.closedX,
-        iy: launchGateBody.userData.closedY,
-        iz: launchGateBody.userData.closedZ,
-        iry: launchGateBody.userData.rotY,
-        w: launchGateBody.userData.w,
-        h: launchGateBody.userData.h,
-        d: launchGateBody.userData.d,
-      },
-      {
-        name: 'Gate (trigger)',
-        body: {
-          rb: {
-            setTranslation: ({ x, y, z }) => {
-              triggerViz.position.set(x, y, z);
-              launchGateBody.userData.triggerX = x;
-              launchGateBody.userData.triggerZ = z;
-            },
-            setRotation: (q) => triggerViz.quaternion.set(q.x, q.y, q.z, q.w),
-          },
-          colliders: [{ setHalfExtents: () => {} }],
-        },
-        mesh: triggerViz,
-        ix: launchGateBody.userData.triggerX,
-        iy: 0.3,
-        iz: launchGateBody.userData.triggerZ,
-        iry: launchGateBody.userData.triggerRotY,
-        w: launchGateBody.userData.triggerW,
-        h: 0.08,
-        d: 0.08,
-      },
     ];
 
     return this;
   }
 
   physicsRotateY = (angleDeg) => {
-    this.flipperBodies.setWorldRotY(angleDeg * DEG);
+    this.flipperActor.setWorldRotY(angleDeg * DEG);
   };
 
   setPhysicsDebugVisible = (v) => {
     this.#drainMesh.visible = v;
-    if (this.#triggerVizMesh) this.#triggerVizMesh.visible = v;
   };
+
+  // --- Debug UI compatibility getters ---
+  /** playfieldDebug accesses level.ballBody.rb for ball spawn teleport. */
+  get ballBody() { return this.ballActor?.body ?? null; }
+
+  /** playfieldDebug accesses level.flipperBodies.left/right/.setActive()/.setWorldRotY(). */
+  get flipperBodies() { return this.flipperActor ?? null; }
+
+  /** main.js / GameLoop backward-compat (deprecated — prefer launchGateActor directly). */
+  get launchGateBody() { return this.launchGateActor ?? null; }
 }

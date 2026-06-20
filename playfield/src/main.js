@@ -11,7 +11,6 @@ import Level from './composition/Level.js';
 import GameLoop from './composition/GameLoop.js';
 import ViewRuntime from './composition/ViewRuntime.js';
 import { wireCollisions } from './composition/wireCollisions.js';
-import { BUMPER_SERVER_TYPE } from './domain/constants.js';
 
 await initRapier();
 
@@ -30,18 +29,17 @@ const physicsWorld = new PhysicsWorld();
 let levelRef = null;
 const collisionHandler = new CollisionHandler({
   onCollision: (type) => {
-    const serverType = type.startsWith('bumper') ? (BUMPER_SERVER_TYPE[type] ?? type) : type;
-    network.emitCollision(serverType);
-    if (type.startsWith('bumper')) actuators.onBumperHit();
+    network.emitCollision(type);
+    if (type.startsWith('bumper'))  actuators.onBumperHit();
     else if (type === 'slingshot') actuators.onSlingshotHit();
-    else if (type === 'tunnel') audio.play('milestone-2');
+    else if (type === 'tunnel')    audio.play('milestone-2');
     else if (type === 'tunnel-rv') audio.play('milestone-1');
   },
   onBallLost: () => {
     network.emitBallLost();
     actuators.onBallLost();
   },
-  onBumperImpulse: (vec3) => levelRef?.ballBody.applyImpulse(vec3),
+  onBumperImpulse: (vec3) => levelRef?.ballActor.applyImpulse(vec3),
 });
 
 const level = await new Level({
@@ -72,26 +70,30 @@ serverOverlay.innerHTML = '<strong>Serveur hors ligne</strong><span>Reconnexion 
 document.body.appendChild(serverOverlay);
 
 let pendingLaunchAfterStart = false;
+let isGameOver = false;
 
 const network = new NetworkAdapter({
   onConnect() { serverOverlay.style.display = 'none'; },
   onConnectionError() { serverOverlay.style.display = 'flex'; },
   onGameStarted() {
-    level.ballBody.reset();
-    level.launchGateBody.open();
+    isGameOver = false;
+    level.ballActor.reset();
+    level.launchGateActor.open();
     collisionHandler.resetDrainFlag();
     collisionHandler.resetCollisionCooldowns();
-    level.flipperBodies.setActive('left', false);
-    level.flipperBodies.setActive('right', false);
+    level.flipperActor.setActive('left', false);
+    level.flipperActor.setActive('right', false);
     if (pendingLaunchAfterStart) {
       pendingLaunchAfterStart = false;
-      if (level.ballBody.launch()) { audio.play('start'); network.emitLaunchBall(); }
+      if (level.ballActor.launch()) { audio.play('start'); network.emitLaunchBall(); }
     }
   },
   onHighScoreBeat() {
     try { audio.playRandom(['highscore-1', 'highscore-2']); } catch { /* ignore */ }
   },
   onGameOver() {
+    isGameOver = true;
+    pendingLaunchAfterStart = false;
     actuators.onGameOver();
   },
 });
@@ -105,10 +107,10 @@ const readyDebug = async () => {
     ambientLight, dirLight, pointLights,
     bloomPass, composer, audio, level,
     onResetHighScore: () => network.emitResetHighScore(),
-    onResetBall: () => { level.ballBody.reset(); level.launchGateBody.open(); },
+    onResetBall: () => { level.ballActor.reset(); level.launchGateActor.open(); },
     onTriggerSpecialEvent: (type) => {
       network.emitCollision(type);
-      if (type === 'tunnel') audio.play('milestone-2');
+      if (type === 'tunnel')    audio.play('milestone-2');
       else if (type === 'tunnel-rv') audio.play('milestone-1');
     },
   });
@@ -118,29 +120,32 @@ readyDebug();
 const inputController = new InputController({
   onStart() { network.emitStartGame(); },
   onLaunch() {
+    if (isGameOver) return;
     if (network.gameState.status === 'playing') {
-      if (level.ballBody.launch()) { audio.play('start'); network.emitLaunchBall(); }
+      if (level.ballActor.launch()) { audio.play('start'); network.emitLaunchBall(); }
       return;
     }
     pendingLaunchAfterStart = true;
     network.emitStartGame();
   },
-  onLeftFlipperDown()  { level.flipperBodies.setActive('left', true);  network.emitFlipperLeftDown();  actuators.onFlipperFire('left'); },
-  onLeftFlipperUp()    { level.flipperBodies.setActive('left', false); network.emitFlipperLeftUp(); },
-  onRightFlipperDown() { level.flipperBodies.setActive('right', true); network.emitFlipperRightDown(); actuators.onFlipperFire('right'); },
-  onRightFlipperUp()   { level.flipperBodies.setActive('right', false); network.emitFlipperRightUp(); },
-  onDebugResetBall()   { level.ballBody.reset(); level.launchGateBody.open(); },
+  onLeftFlipperDown()  { level.flipperActor.setActive('left', true);  network.emitFlipperLeftDown();  actuators.onFlipperFire('left'); },
+  onLeftFlipperUp()    { level.flipperActor.setActive('left', false); network.emitFlipperLeftUp(); },
+  onRightFlipperDown() { level.flipperActor.setActive('right', true); network.emitFlipperRightDown(); actuators.onFlipperFire('right'); },
+  onRightFlipperUp()   { level.flipperActor.setActive('right', false); network.emitFlipperRightUp(); },
+  onDebugResetBall()   { level.ballActor.reset(); level.launchGateActor.open(); },
 });
 inputController.bindKeyboard();
 inputController.bindCabinet(network.socket);
 
 new GameLoop({
   physicsWorld,
-  syncPairs: level.syncPairs,
+  actors:    level.actors,
   collisionHandler,
-  ballBody: level.ballBody,
-  flipperBodies: level.flipperBodies,
-  launchGateBody: level.launchGateBody,
+  ballActor: level.ballActor,
+  onDrain:   () => {
+    level.ballActor.reset();
+    level.launchGateActor.open();
+  },
   gameState: network.gameState,
-  renderFn: () => bloom.render(viewRuntime.getCamera()),
+  renderFn:  () => bloom.render(viewRuntime.getCamera()),
 }).start();

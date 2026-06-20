@@ -1,5 +1,6 @@
 import { Vector3 } from 'three';
 import { getRapier, createBodyHandle } from '../adapters/physics/index.js';
+import { BUMPER_CONFIG } from '../domain/bumperConfig.js';
 
 export function buildGLBCollisions(physicsWorld, gltfScene) {
   const RAPIER = getRapier();
@@ -34,7 +35,9 @@ export function buildGLBCollisions(physicsWorld, gltfScene) {
         .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS),
       rb,
     );
-    const userData = isBumper ? { type: 'bumper_10', center } : { type: 'table' };
+    const config = BUMPER_CONFIG[gltfScene.name];
+    const bumperType = config?.serverType ?? 'bumper_10';
+    const userData = isBumper ? { type: bumperType, center } : { type: 'table' };
     createBodyHandle(rb, { userData, colliders: [col] });
   });
 }

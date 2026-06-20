@@ -72,6 +72,7 @@ export function wirePlayfieldDebug(deps) {
       setPhysicsDebugVisible: level.setPhysicsDebugVisible,
       triggers:               level.triggers,
       bumpers:                level.bumpers,
+      slingshotGroup:         level.slingshotGroup ?? null,
     });
     createPhysicsDebugUI({
       onTriggerSpecialEvent: deps.onTriggerSpecialEvent,
