@@ -66,11 +66,9 @@ export function buildEnvironment(world) {
     const ox = Math.random();
     const oy = Math.random();
     const mat = new THREE.MeshStandardMaterial({
-      color: 0xccff00, // jaune fluo toxic/danger (assorti aux batteurs)
+      color: 0xccff00,
       metalness: 0.2,
       roughness: 1,
-      // Emissif jaune-vert fluo : glow radioactif, les murs restent visibles de
-      // tranche et brillent dans la pénombre.
       emissive: 0xaaff00,
       emissiveIntensity: 0.6,
       normalMap: loadRust("/textures/rust_normalGL.jpg", rx, ry, ox, oy),

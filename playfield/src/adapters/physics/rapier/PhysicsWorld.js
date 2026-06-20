@@ -120,14 +120,5 @@ class PhysicsWorld {
   }
 }
 
-export function syncMeshesWithBodies(pairs) {
-  for (const { mesh, body } of pairs) {
-    const t = body.rb.translation();
-    const q = body.rb.rotation();
-    mesh.position.set(t.x, t.y, t.z);
-    mesh.quaternion.set(q.x, q.y, q.z, q.w);
-  }
-}
-
 export { MATERIALS, bodyHandlesByRapierHandle, createBodyHandle };
 export default PhysicsWorld;

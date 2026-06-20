@@ -63,6 +63,7 @@ export function wirePlayfieldDebug(deps) {
     createPlayfieldDebugUI({
       gltfModel:              level.gltfModel,
       gltfInner:              level.gltfInner,
+      extrasGroup:            level.extrasGroup,
       flipperBodies:          level.flipperBodies,
       ballBody:               level.ballBody,
       world:                  deps.world,
@@ -70,6 +71,8 @@ export function wirePlayfieldDebug(deps) {
       physicsRotateY:         level.physicsRotateY,
       setPhysicsDebugVisible: level.setPhysicsDebugVisible,
       triggers:               level.triggers,
+      bumpers:                level.bumpers,
+      slingshotGroup:         level.slingshotGroup ?? null,
     });
     createPhysicsDebugUI({
       onTriggerSpecialEvent: deps.onTriggerSpecialEvent,

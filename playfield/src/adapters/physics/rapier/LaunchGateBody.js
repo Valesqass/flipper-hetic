@@ -45,9 +45,9 @@ class LaunchGateBody {
     createBodyHandle(this.#rb, { userData: this.#userData, colliders: this.#colliders });
   }
 
-  get rb()       { return this.#rb; }
-  get colliders(){ return this.#colliders; }
-  get userData() { return this.#userData; }
+  get rb()        { return this.#rb; }
+  get colliders() { return this.#colliders; }
+  get userData()  { return this.#userData; }
 
   open() {
     this.#userData.pendingCloseAt = undefined;
@@ -60,6 +60,7 @@ class LaunchGateBody {
     this.#userData.state = "closed";
   }
 
+  /** Receives ball Z position; closes gate when ball clears the gate plane. */
   update(ballZ) {
     if (this.#userData.state !== "open") return;
     const triggerZ = this.#userData.closedZ - this.#userData.d / 2;

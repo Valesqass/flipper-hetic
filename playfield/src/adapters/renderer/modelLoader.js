@@ -25,29 +25,34 @@ const EXTRA_MODELS = [
   'Obstacle-tunnel2',
 ];
 
-const EXTRA_SCALE_X = 5.9;
-const EXTRA_SCALE_Y = 2.85;
-const EXTRA_SCALE_Z = 3.25;
+const EXTRA_SCALE_X = 6.372;
+const EXTRA_SCALE_Y = 3.078;
+const EXTRA_SCALE_Z = 3.51;
 const EXTRA_ROT_X   = 8;
 const EXTRA_ROT_Y   = -90;
 const EXTRA_ROT_Z   = 16;
-const EXTRA_POS_X   = -0.25;
-const EXTRA_POS_Y   = -6.5;
-const EXTRA_POS_Z   = 1.35;
+const EXTRA_POS_X   = -0.37;
+const EXTRA_POS_Y   = -7.02;
+const EXTRA_POS_Z   = 0.758;
 const DEG = Math.PI / 180;
+
+const BUMPER_POS = {
+  'Bumper-losange2': { x: -0.8, y: EXTRA_POS_Y, z: 4 },
+};
 
 class ModelLoader {
   async loadExtra() {
     const loader = new GLTFLoader();
     const scenes = await Promise.all(
       EXTRA_MODELS.map(name => new Promise((resolve, reject) =>
-        loader.load(`/models/${name}.glb`, (gltf) => resolve(gltf.scene), undefined, reject),
+        loader.load(`/models/${name}.glb`, (gltf) => { gltf.scene.name = name; resolve(gltf.scene); }, undefined, reject),
       )),
     );
     for (const m of scenes) {
+      const pos = BUMPER_POS[m.name];
       m.scale.set(EXTRA_SCALE_X, EXTRA_SCALE_Y, EXTRA_SCALE_Z);
       m.rotation.set(EXTRA_ROT_X * DEG, EXTRA_ROT_Y * DEG, EXTRA_ROT_Z * DEG);
-      m.position.set(EXTRA_POS_X, EXTRA_POS_Y, EXTRA_POS_Z);
+      m.position.set(pos?.x ?? EXTRA_POS_X, pos?.y ?? EXTRA_POS_Y, pos?.z ?? EXTRA_POS_Z);
     }
     return scenes;
   }

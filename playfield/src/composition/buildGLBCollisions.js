@@ -1,10 +1,14 @@
 import { Vector3 } from 'three';
 import { getRapier, createBodyHandle } from '../adapters/physics/index.js';
+import { BUMPER_CONFIG } from '../domain/bumperConfig.js';
 
 export function buildGLBCollisions(physicsWorld, gltfScene) {
   const RAPIER = getRapier();
   const world = physicsWorld.world;
   gltfScene.updateMatrixWorld(true);
+
+  const isBumper = gltfScene.name?.startsWith('Bumper-') ?? false;
+  const center = isBumper ? { x: gltfScene.position.x, y: 0, z: gltfScene.position.z } : null;
 
   const tmp = new Vector3();
 
@@ -26,11 +30,14 @@ export function buildGLBCollisions(physicsWorld, gltfScene) {
     const rb = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
     const col = world.createCollider(
       RAPIER.ColliderDesc.trimesh(verts, indices)
-        .setFriction(0.15)
-        .setRestitution(0.35)
+        .setFriction(isBumper ? 0.1 : 0.15)
+        .setRestitution(isBumper ? 0.9 : 0.35)
         .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS),
       rb,
     );
-    createBodyHandle(rb, { userData: { type: 'table' }, colliders: [col] });
+    const config = BUMPER_CONFIG[gltfScene.name];
+    const bumperType = config?.serverType ?? 'bumper_10';
+    const userData = isBumper ? { type: bumperType, center } : { type: 'table' };
+    createBodyHandle(rb, { userData, colliders: [col] });
   });
 }

@@ -34,7 +34,7 @@ export const TUNNEL_WALL_Z = TABLE_DEPTH / 2 - TUNNEL_LENGTH / 2;
 // Spawn bille (couloir de lancement, le long du mur droit en bas du plateau)
 export const PLUNGER_SPAWN_X = 4.65;
 export const PLUNGER_SPAWN_Y = 0.65;
-export const PLUNGER_SPAWN_Z = 13.0;
+export const PLUNGER_SPAWN_Z = 7.2;
 
 // Murs du couloir de lancement — encadrent la bille a 0.5 unite de part et d'autre
 export const LAUNCH_WALL_OFFSET_X = 0.5;
@@ -62,9 +62,9 @@ export const FLIPPER_LENGTH = 2.0;
 export const FLIPPER_WIDTH = 0.4;
 export const FLIPPER_HEIGHT = 0.3;
 export const FLIPPER_REST_ANGLE = 0.5;   // radians (~28°), battes au repos vers le drain
-export const FLIPPER_PIVOT_X = 2.1;
-export const FLIPPER_OFFSET_X = PLAYABLE_CENTER_X; // centre la paire de flippers sur la largeur jouable
-export const FLIPPER_PIVOT_Z = 11.4; // remonte les battes plus haut sur le plateau (etait 12.9)
+export const FLIPPER_PIVOT_X = 2.4;
+export const FLIPPER_OFFSET_X = -0.8;
+export const FLIPPER_PIVOT_Z = 11.25;
 export const FLIPPER_PIVOT_Y = 0.55;
 export const FLIPPER_ROT_X = 0.05235987755982989;  // radians (~3°), inclinaison des battes sur l'axe X
 export const FLIPPER_ROT_Z = 0.017453292519943295;  // radians (~1°), inclinaison des battes sur l'axe Z
@@ -77,10 +77,7 @@ export const SLINGSHOT_TOP_OFFSET = 2.4; // distance Z entre l'extremite haute e
 export const CORNER_DEFLECTOR_SIZE = 2;     // longueur d'arete coupee sur X et sur Z
 export const CORNER_DEFLECTOR_DEPTH = 0.25;
 
-// Arche — arrondi en haut du playfield (remplace les deux coins carres)
-// ARCH_RADIUS  : rayon de l'arche (TABLE_WIDTH / 2 = demi-largeur)
-// ARCH_CENTER_Z: centre de l'arc en Z (bas de l'arche, rejoint les murs lateraux)
-// ARCH_SEGMENTS: nombre de points pour approcher la courbe (10 = suffisant)
+// Arche — arrondi en haut du playfield (positionne via debug sur le GLB Obstacle-arch)
 export const ARCH_RADIUS     = TABLE_WIDTH / 2;
 export const ARCH_CENTER_Z   = -8.5;
 export const ARCH_HALF_WIDTH = 6.05;
@@ -104,17 +101,6 @@ export const FLIPPER_SPEED = 15;
 
 // Collisions — cooldown entre deux emissions du meme type (ms)
 export const COLLISION_COOLDOWN_MS = 300;
-
-// Bumpers — correspondance ID local → type événement serveur (score associé)
-export const BUMPER_SERVER_TYPE = {
-  'bumper-cyl-0':     'bumper_100',
-  'bumper-cyl-1':     'bumper_50',
-  'bumper-cyl-2':     'bumper_25',
-  'bumper-diamond':   'bumper_10',
-  'bumper-diamond-2': 'bumper_10',
-  'bumper-tri-left':  'bumper_10',
-  'bumper-tri-right': 'bumper_10',
-};
 
 // Rendu WebGL — cibles machines integrees / ecrans haute densite
 /** Plafonne devicePixelRatio (souvent la cause n°1 des lags sur PC integre). */

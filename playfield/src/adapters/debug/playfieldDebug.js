@@ -1,7 +1,3 @@
-import {
-  GLB_SCALE_X, GLB_SCALE_Y, GLB_SCALE_Z, GLB_ROTATION_X, GLB_ROTATION_Y, GLB_ROTATION_Z,
-  GLB_POSITION_X, GLB_POSITION_Y, GLB_POSITION_Z,
-} from '../renderer/modelLoader.js';
 import { BoxGeometry, CylinderGeometry } from 'three';
 import {
   FLIPPER_PIVOT_X, FLIPPER_PIVOT_Z, FLIPPER_PIVOT_Y, FLIPPER_REST_ANGLE,
@@ -13,17 +9,8 @@ import { PLAYFIELD_VIEW_DEFAULTS } from '../../domain/viewConfig.js';
 const DEG = Math.PI / 180;
 const RESET_BTN_CSS = 'padding:1px 5px;background:transparent;color:#0ff;border:1px solid #0ff;border-radius:3px;cursor:pointer;font-size:11px;flex-shrink:0;line-height:1.4';
 
-export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ballBody, world, onConfigChange, physicsRotateY, setPhysicsDebugVisible, triggers }) {
+export function createPlayfieldDebugUI({ gltfModel, gltfInner, extrasGroup, flipperBodies, ballBody, world, onConfigChange, physicsRotateY, setPhysicsDebugVisible, triggers, bumpers, slingshotGroup = null }) {
   const defaults = {
-    glbScaleY: GLB_SCALE_Y,
-    glbScaleZ: GLB_SCALE_Z,
-    glbScaleX: GLB_SCALE_X,
-    glbRotX:   GLB_ROTATION_X,
-    glbRotY:   GLB_ROTATION_Y,
-    glbRotZ:   GLB_ROTATION_Z,
-    glbPosX:   GLB_POSITION_X,
-    glbPosY:   GLB_POSITION_Y,
-    glbPosZ:   GLB_POSITION_Z,
     pivotX:       FLIPPER_PIVOT_X,
     pivotY:       FLIPPER_PIVOT_Y,
     pivotZ:       FLIPPER_PIVOT_Z,
@@ -36,26 +23,16 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ba
     spawnZ:    PLUNGER_SPAWN_Z,
     gravityTiltDeg:   PLAYFIELD_VIEW_DEFAULTS.gravityTiltDeg,
     gravityMagnitude: PLAYFIELD_VIEW_DEFAULTS.gravityMagnitude,
-    worldRotX: 0,
-    worldRotY: 0,
-    worldRotZ: 0,
+    extrasScale: 1,
+    extrasPosX:  0,
+    extrasPosY:  0,
+    extrasPosZ:  0,
+    slingshotPosX: 0,
+    slingshotPosY: 0,
+    slingshotPosZ: 0,
   };
 
   const state = { ...defaults };
-
-  function applyGLB() {
-    if (!gltfModel) return;
-    // Scale and position on outer group — changing scale stays in world axes, no rotation interaction.
-    gltfModel.scale.set(state.glbScaleX, state.glbScaleY, state.glbScaleZ);
-    gltfModel.position.set(state.glbPosX, state.glbPosY, state.glbPosZ);
-    // Rotation on inner model — isolated from scale so non-uniform scale doesn't shear.
-    const rotTarget = gltfInner ?? gltfModel;
-    rotTarget.rotation.set(
-      (state.glbRotX + state.worldRotX) * DEG,
-      (state.glbRotY + state.worldRotY) * DEG,
-      (state.glbRotZ + state.worldRotZ) * DEG,
-    );
-  }
 
   function quatFromYaw(a) { const h = a / 2; return { x: 0, y: Math.sin(h), z: 0, w: Math.cos(h) }; }
   function quatFromAxis(ax, ay, az, a) { const h = a / 2, s = Math.sin(h); return { x: ax*s, y: ay*s, z: az*s, w: Math.cos(h) }; }
@@ -79,11 +56,11 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ba
     world.setGravity(state.gravityTiltDeg, state.gravityMagnitude);
   }
 
-  function applyWorldRot() {
-    applyGLB();
-    if (physicsRotateY) physicsRotateY(state.worldRotY);
+  function applyExtras() {
+    if (!extrasGroup) return;
+    extrasGroup.scale.setScalar(state.extrasScale);
+    extrasGroup.position.set(state.extrasPosX, state.extrasPosY, state.extrasPosZ);
   }
-
 
   function applyBall() {
     if (!ballBody?.rb) return;
@@ -113,21 +90,12 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ba
     right.body.rb.setRotation(composeRot(right.restAngle, rx, rz), true);
   }
 
+  function applySlingshot() {
+    if (!slingshotGroup) return;
+    slingshotGroup.position.set(state.slingshotPosX, state.slingshotPosY, state.slingshotPosZ);
+  }
+
   const SECTIONS = [
-    {
-      title: '▸ GLB Visual',
-      rows: [
-        { key: 'glbScaleY', label: 'Scale Y',     min: 0.1,  max: 20,   step: 0.05, apply: applyGLB },
-        { key: 'glbScaleZ', label: 'Scale Z',     min: 0.1,  max: 20,   step: 0.05, apply: applyGLB },
-        { key: 'glbScaleX', label: 'Scale X',     min: 0.1,  max: 20,   step: 0.05, apply: applyGLB },
-        { key: 'glbRotX',  label: 'Rotation X°', min: -180, max: 180,  step: 1,    apply: applyGLB },
-        { key: 'glbRotY',  label: 'Rotation Y°', min: -180, max: 180,  step: 1,    apply: applyGLB },
-        { key: 'glbRotZ',  label: 'Rotation Z°', min: -180, max: 180,  step: 1,    apply: applyGLB },
-        { key: 'glbPosX',  label: 'Position X',  min: -20,  max: 20,   step: 0.05, apply: applyGLB },
-        { key: 'glbPosY',  label: 'Position Y',  min: -20,  max: 20,   step: 0.05, apply: applyGLB },
-        { key: 'glbPosZ',  label: 'Position Z',  min: -20,  max: 20,   step: 0.05, apply: applyGLB },
-      ],
-    },
     {
       title: '▸ Flippers',
       rows: [
@@ -156,11 +124,12 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ba
       ],
     },
     {
-      title: '▸ World Rotation',
+      title: '▸ GLB Extras (obstacles + bumpers)',
       rows: [
-        { key: 'worldRotX', label: 'Rotate X (°)', min: -180, max: 180, step: 1, apply: applyWorldRot },
-        { key: 'worldRotY', label: 'Rotate Y (°)', min: -180, max: 180, step: 1, apply: applyWorldRot },
-        { key: 'worldRotZ', label: 'Rotate Z (°)', min: -180, max: 180, step: 1, apply: applyWorldRot },
+        { key: 'extrasScale', label: 'Scale',    min: 0.1, max: 5,  step: 0.01, apply: applyExtras },
+        { key: 'extrasPosX', label: 'Offset X',  min: -10, max: 10, step: 0.05, apply: applyExtras },
+        { key: 'extrasPosY', label: 'Offset Y',  min: -15, max: 5,  step: 0.05, apply: applyExtras },
+        { key: 'extrasPosZ', label: 'Offset Z',  min: -10, max: 10, step: 0.05, apply: applyExtras },
       ],
     },
   ];
@@ -250,7 +219,7 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ba
     panel.appendChild(sec);
   });
 
-  // ── Component sections (Obstacles / Bumpers / Triggers) ──────────────────
+  // ── Component sections (Bumpers / Triggers) ──────────────────────────────
 
   function makeCompUI(comp) {
     const cs = { x: comp.ix, y: comp.iy, z: comp.iz, rx: comp.irx ?? 0, ry: comp.iry, rz: comp.irz ?? 0 };
@@ -399,7 +368,44 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, flipperBodies, ba
     panel.appendChild(sec);
   }
 
+  makeComponentSection('▸ Bumpers', bumpers, 'bumpers');
   makeComponentSection('▸ Triggers', triggers, 'triggers');
+
+  // ── Slingshot Group ───────────────────────────────────────────────────────
+
+  if (slingshotGroup) {
+    const slingshotRows = [
+      { key: 'slingshotPosX', label: 'Position X', min: -5, max: 5, step: 0.05, apply: applySlingshot },
+      { key: 'slingshotPosY', label: 'Position Y', min: -5, max: 5, step: 0.05, apply: applySlingshot },
+      { key: 'slingshotPosZ', label: 'Position Z', min: -5, max: 5, step: 0.05, apply: applySlingshot },
+    ];
+
+    const sec = document.createElement('div');
+    sec.style.cssText = 'margin-top:10px;border-top:1px solid rgba(0,255,255,.3);padding-top:8px';
+
+    const secHeader = document.createElement('div');
+    secHeader.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:6px';
+
+    const h = document.createElement('div');
+    h.style.cssText = 'font-weight:bold';
+    h.textContent = '▸ Slingshot Group';
+    secHeader.appendChild(h);
+
+    const secReset = document.createElement('button');
+    secReset.textContent = '↺ Reset section';
+    secReset.style.cssText = RESET_BTN_CSS;
+    secReset.addEventListener('click', () => {
+      slingshotRows.forEach((r) => { state[r.key] = defaults[r.key]; });
+      allOnChange
+        .filter(({ key }) => slingshotRows.some((r) => r.key === key))
+        .forEach(({ key, onChange }) => onChange(defaults[key]));
+    });
+    secHeader.appendChild(secReset);
+    sec.appendChild(secHeader);
+
+    slingshotRows.forEach((r) => sec.appendChild(makeRow(r)));
+    panel.appendChild(sec);
+  }
 
   // ── Controls ─────────────────────────────────────────────────────────────
 
