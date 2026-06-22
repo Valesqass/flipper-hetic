@@ -46,8 +46,10 @@ const DEG = Math.PI / 180;
 
 const BUMPER_POS = {
   'Bumper-losange2':  { x: 0.775, y: 0.6, z: -8.24 }, // baril a l'emplacement de l'ancien losange du haut
-  'Bumper-barril-1':  { x: 0,    y: EXTRA_POS_Y, z: 0.758 },
-  'Bumper-barril-2':  { x: -3,   y: EXTRA_POS_Y, z: 0.758 },
+  // Deux barils supplementaires, symetriques autour de PLAYABLE_CENTER_X (-0.775),
+  // en milieu-haut du plateau. Geometrie barril centree ~origine -> pos ~= monde.
+  'Bumper-barril-1':  { x: 1.425,  y: 0.6, z: -5 },
+  'Bumper-barril-2':  { x: -2.975, y: 0.6, z: -5 },
   // Triangles symetriques autour de l'axe central du jouable (PLAYABLE_CENTER_X = -0.775) :
   // X miroir (+/-2.70), Z et Y conserves (deja alignes, monde z=3.28 y=0.53).
   'Bumper-triangle1': { x: 0.034, y: -7.020, z: 0.751 },
@@ -59,6 +61,8 @@ const BUMPER_POS = {
 // Il lui faut donc une echelle ~100x plus petite que l'echelle commune des extras.
 const BUMPER_SCALE = {
   'Bumper-losange2': { x: 0.0033, y: 0.0033, z: 0.0033 },
+  'Bumper-barril-1': { x: 0.0033, y: 0.0033, z: 0.0033 },
+  'Bumper-barril-2': { x: 0.0033, y: 0.0033, z: 0.0033 },
 };
 
 class ModelLoader {
