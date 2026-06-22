@@ -34,7 +34,7 @@ export const PLAYFIELD_VIEW_DEFAULTS = {
   dirLightX: 14,
   dirLightY: 14,
   dirLightZ: 18,
-  dirLightIntensity: 3.6,
+  dirLightIntensity: 2.7,
 };
 
 export function applyViewConfigToPerspectiveCamera(

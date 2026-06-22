@@ -9,10 +9,10 @@ import {
 } from "../../domain/viewConfig.js";
 
 export const POINT_LIGHT_DEFAULTS = [
-  { label: 'Bumpers',     color: '#ff5510', intensity: 5, distance: 10, x:  0.8, y: 3, z: -2   },
-  { label: 'Flippers',   color: '#ff2207', intensity: 5, distance: 10, x: -0.5, y: 3, z:  4.5 },
-  { label: 'Gauche',     color: '#ff3a12', intensity: 4, distance:  8, x: -3.5, y: 3, z:  1   },
-  { label: 'Haut-Droit', color: '#ff7016', intensity: 4, distance:  8, x:  3.0, y: 3, z: -5   },
+  { label: 'Bumpers',     color: '#ff5510', intensity: 3.6, distance: 10, x:  0.8, y: 3, z: -2   },
+  { label: 'Flippers',   color: '#ff2207', intensity: 3.6, distance: 10, x: -0.5, y: 3, z:  4.5 },
+  { label: 'Gauche',     color: '#ff3a12', intensity: 2.9, distance:  8, x: -3.5, y: 3, z:  1   },
+  { label: 'Haut-Droit', color: '#ff7016', intensity: 2.9, distance:  8, x:  3.0, y: 3, z: -5   },
 ];
 
 class PlayfieldScene {
@@ -43,7 +43,7 @@ class PlayfieldScene {
     this.#renderer.setSize(window.innerWidth, window.innerHeight);
     this.#renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, MAX_RENDERER_PIXEL_RATIO));
     this.#renderer.toneMapping = THREE.ReinhardToneMapping;
-    this.#renderer.toneMappingExposure = 1.7;
+    this.#renderer.toneMappingExposure = 1.45;
     this.#renderer.shadowMap.enabled = true;
     this.#renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.style.margin = "0";
@@ -53,7 +53,7 @@ class PlayfieldScene {
     this.#ambientLight = new THREE.AmbientLight(0xffffff, PLAYFIELD_VIEW_DEFAULTS.ambientIntensity);
     this.#scene.add(this.#ambientLight);
 
-    this.#hemiLight = new THREE.HemisphereLight(0xff6e12, 0x4d0a00, 1.15);
+    this.#hemiLight = new THREE.HemisphereLight(0xff6e12, 0x4d0a00, 0.85);
     this.#scene.add(this.#hemiLight);
 
     this.#dirLight = new THREE.DirectionalLight(0xff5318, PLAYFIELD_VIEW_DEFAULTS.dirLightIntensity);

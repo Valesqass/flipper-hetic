@@ -57,28 +57,6 @@ export function buildEnvironment(world) {
       roughnessMap: loadRust("/textures/rust_roughness.jpg", rx, ry, ox, oy),
     });
   }
-  // Tiling sur l'empreinte horizontale (boxWidth x boxDepth) et non sur la hauteur :
-  // garantit la cohérence visuelle quelle que soit l'orientation du mur.
-  function makeWornWallMaterial(boxWidth, boxDepth) {
-    const rx = Math.max(1, Math.round(boxWidth / RUST_TILE));
-    const ry = Math.max(1, Math.round(boxDepth / RUST_TILE));
-    // Décalage commun aux 3 maps pour synchroniser relief/salissure sur le même mur.
-    const ox = Math.random();
-    const oy = Math.random();
-    const mat = new THREE.MeshStandardMaterial({
-      color: 0xccff00,
-      metalness: 0.2,
-      roughness: 1,
-      emissive: 0xaaff00,
-      emissiveIntensity: 0.6,
-      normalMap: loadRust("/textures/rust_normalGL.jpg", rx, ry, ox, oy),
-      roughnessMap: loadRust("/textures/rust_roughness.jpg", rx, ry, ox, oy),
-      aoMap: loadRust("/textures/rust_color.jpg", rx, ry, ox, oy),
-      aoMapIntensity: 1.5,
-    });
-    mat.normalScale.set(1.8, 1.8);
-    return mat;
-  }
 
   const floor = new THREE.Mesh(
     new THREE.BoxGeometry(TABLE_WIDTH, TABLE_THICKNESS, TABLE_DEPTH),
@@ -148,19 +126,19 @@ export function buildEnvironment(world) {
   }
 
   const lateralLen = TABLE_DEPTH + wt * 2;
-  addWall(wt, WALL_HEIGHT, lateralLen, -hw - wt / 2, y, 0, 0, makeWornWallMaterial(wt, lateralLen));
-  addWall(wt, WALL_HEIGHT, lateralLen, hw + wt / 2, y, 0, 0, makeWornWallMaterial(wt, lateralLen));
+  addWall(wt, WALL_HEIGHT, lateralLen, -hw - wt / 2, y, 0, 0, makeRustMetalMaterial(wt, lateralLen));
+  addWall(wt, WALL_HEIGHT, lateralLen, hw + wt / 2, y, 0, 0, makeRustMetalMaterial(wt, lateralLen));
 
   const topLen = TABLE_WIDTH + wt * 2;
-  addWall(topLen, WALL_HEIGHT, wt, 0, y, -hd - wt / 2, 0, makeWornWallMaterial(topLen, wt));
+  addWall(topLen, WALL_HEIGHT, wt, 0, y, -hd - wt / 2, 0, makeRustMetalMaterial(topLen, wt));
 
   const bz = hd + wt / 2;
   const drainLeft = PLAYABLE_CENTER_X - DRAIN_OPENING_WIDTH / 2;
   const drainRight = PLAYABLE_CENTER_X + DRAIN_OPENING_WIDTH / 2;
   const leftSeg = drainLeft - (-hw);
   const rightSeg = hw - drainRight;
-  addWall(leftSeg, WALL_HEIGHT, wt, (-hw + drainLeft) / 2, y, bz, 0, makeWornWallMaterial(leftSeg, wt));
-  addWall(rightSeg, WALL_HEIGHT, wt, (drainRight + hw) / 2, y, bz, 0, makeWornWallMaterial(rightSeg, wt));
+  addWall(leftSeg, WALL_HEIGHT, wt, (-hw + drainLeft) / 2, y, bz, 0, makeRustMetalMaterial(leftSeg, wt));
+  addWall(rightSeg, WALL_HEIGHT, wt, (drainRight + hw) / 2, y, bz, 0, makeRustMetalMaterial(rightSeg, wt));
 
   const lwt = LAUNCH_WALL_THICKNESS;
   addWall(lwt, WALL_HEIGHT, LAUNCH_WALL_LENGTH, LAUNCH_WALL_LEFT_X, y, LAUNCH_WALL_Z, 0, makeRustMetalMaterial(lwt, LAUNCH_WALL_LENGTH));
