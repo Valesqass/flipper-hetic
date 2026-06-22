@@ -2,12 +2,13 @@ import { WALL_HEIGHT } from "../../../domain/constants.js";
 import { getRapier } from "./init.js";
 import { MATERIALS, createBodyHandle } from "./PhysicsWorld.js";
 
-const GATE_X        = 4;
-const GATE_Z        = -8.75;
-const GATE_W        = 5.7;
+const GATE_X        = 2.75;
+const GATE_Z        = -12.4;
+const GATE_W        = 3.9;
 const GATE_H        = 1;
 const GATE_D        = 0.35;
 const GATE_ROTY_DEG = 90;
+const GATE_TRIGGER_Z = -10.65;
 const GATE_Y_CLOSED = WALL_HEIGHT / 2;
 const GATE_Y_OPEN   = -10;
 
@@ -39,6 +40,7 @@ class LaunchGateBody {
       type: "launch_gate", state: "open",
       closedX: GATE_X, closedZ: GATE_Z,
       w: GATE_W, h: GATE_H, d: GATE_D, rotY: GATE_ROTY_DEG,
+      triggerZ: GATE_TRIGGER_Z,
     };
     this.#colliders = [collider];
 
@@ -63,7 +65,7 @@ class LaunchGateBody {
   /** Receives ball Z position; closes gate when ball clears the gate plane. */
   update(ballZ) {
     if (this.#userData.state !== "open") return;
-    const triggerZ = this.#userData.closedZ - this.#userData.d / 2;
+    const triggerZ = this.#userData.triggerZ;
     if (ballZ < triggerZ && this.#userData.pendingCloseAt === undefined) {
       this.#userData.pendingCloseAt = performance.now() + 140;
     }

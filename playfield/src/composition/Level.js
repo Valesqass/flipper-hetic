@@ -10,6 +10,9 @@ import {
   DRAIN_Z_THRESHOLD,
   DRAIN_OPENING_WIDTH,
   PLAYABLE_CENTER_X,
+  TABLE_WIDTH,
+  TABLE_DEPTH,
+  WALL_HEIGHT,
 } from '../domain/constants.js';
 
 const DEG = Math.PI / 180;
@@ -19,6 +22,7 @@ export default class Level {
   #physicsWorld;
   #onDrainZChange;
   #drainMesh = null;
+  #gateTriggerMesh = null;
 
   // Actors — the core game objects
   ballActor        = null;
@@ -53,24 +57,29 @@ export default class Level {
     const extrasGroup = new Group();
     extrasGroup.name = 'playfield-extras';
     envGroup.add(extrasGroup);
+    const slingshotNames = new Set(['Obstacle-flipper1', 'Obstacle-flipper2']);
+    const slingshotGroup = new Group();
+    slingshotGroup.name = 'slingshot-group';
+    slingshotGroup.position.set(0.25, 0, 0);
+    extrasGroup.add(slingshotGroup);
+
     for (const m of extraScenes) {
-      extrasGroup.add(m);
+      if (slingshotNames.has(m.name)) {
+        slingshotGroup.add(m);
+      } else {
+        extrasGroup.add(m);
+      }
       m.updateMatrixWorld(true);
       buildGLBCollisions(this.#physicsWorld, m);
     }
 
-    // Slingshot group: Obstacle-flipper GLBs move to their own group
-    const slingshotGroup = new Group();
-    slingshotGroup.name = 'slingshot-group';
-    const slingshotNames = new Set(['Obstacle-flipper1', 'Obstacle-flipper2']);
-    for (const m of extraScenes) {
-      if (slingshotNames.has(m.name)) {
-        extrasGroup.remove(m);
-        slingshotGroup.add(m);
-      }
-    }
-    slingshotGroup.position.set(0.25, 0, 0);
-    extrasGroup.add(slingshotGroup);
+    this.#physicsWorld.createStaticBox({
+      width: TABLE_WIDTH + 2,
+      height: 0.1,
+      depth: TABLE_DEPTH + 2,
+      position: { x: 0, y: 0.95, z: 0 },
+      type: 'table',
+    });
 
     // --- Actors ---
     const ballActor       = new BallActor(this.#physicsWorld, this.#scene);
@@ -78,7 +87,7 @@ export default class Level {
     const launchGateActor = LaunchGateActor.create(this.#physicsWorld, this.#scene, ballActor);
     const slingshotActor  = new SlingshotActor(this.#physicsWorld);
 
-    // --- Debug drain mesh ---
+    // --- Debug meshes ---
     const drainMesh = new Mesh(
       new BoxGeometry(DRAIN_OPENING_WIDTH, 0.6, 0.5),
       new MeshBasicMaterial({ color: 0xff2200, transparent: true, opacity: 0.5, side: DoubleSide, depthWrite: false }),
@@ -87,6 +96,17 @@ export default class Level {
     drainMesh.visible = false;
     envGroup.add(drainMesh);
     this.#drainMesh = drainMesh;
+
+    const gateUD = launchGateActor.body.userData;
+    const gateTriggerMesh = new Mesh(
+      new BoxGeometry(TABLE_WIDTH, 0.05, 0.05),
+      new MeshBasicMaterial({ color: 0x00aaff, transparent: true, opacity: 0.7, side: DoubleSide, depthWrite: false }),
+    );
+    gateTriggerMesh.position.set(2.45, WALL_HEIGHT / 2, gateUD.triggerZ);
+    gateTriggerMesh.rotation.y = -85 * DEG;
+    gateTriggerMesh.visible = false;
+    envGroup.add(gateTriggerMesh);
+    this.#gateTriggerMesh = gateTriggerMesh;
 
     // --- Level group: collect all actor meshes + environment ---
     const levelGroup = new Group();
@@ -137,7 +157,9 @@ export default class Level {
         };
       });
 
-    // --- Debug triggers (only Drain Zone remains) ---
+    // --- Debug triggers ---
+    const gateBody = launchGateActor.body;
+    const gateMesh = launchGateActor.mesh;
     this.triggers = [
       {
         name: 'Drain Zone',
@@ -157,6 +179,53 @@ export default class Level {
         ix: PLAYABLE_CENTER_X, iy: 0.3, iz: DRAIN_Z_THRESHOLD, iry: 0,
         w: DRAIN_OPENING_WIDTH, h: 0.6, d: 0.5,
       },
+      {
+        name: 'Launch Gate',
+        body: {
+          rb: {
+            setTranslation: ({ x, y, z }) => {
+              gateBody.rb.setTranslation({ x, y, z }, true);
+              gateBody.userData.closedX = x;
+              gateBody.userData.closedZ = z;
+              gateUD.triggerZ = z - gateUD.d / 2;
+              gateTriggerMesh.position.z = gateUD.triggerZ;
+            },
+            setRotation: (q) => gateBody.rb.setRotation(q, true),
+          },
+          colliders: [{
+            setHalfExtents: ({ x, y, z }) => {
+              gateBody.colliders[0].setHalfExtents({ x, y, z });
+              gateUD.w = x * 2; gateUD.h = y * 2; gateUD.d = z * 2;
+              gateUD.triggerZ = gateUD.closedZ - gateUD.d / 2;
+              gateTriggerMesh.position.z = gateUD.triggerZ;
+              if (gateMesh) {
+                gateMesh.geometry.dispose();
+                gateMesh.geometry = new BoxGeometry(x * 2, y * 2, z * 2);
+              }
+            },
+          }],
+        },
+        mesh: gateMesh,
+        ix: gateUD.closedX, iy: WALL_HEIGHT / 2, iz: gateUD.closedZ,
+        irx: 0, iry: gateUD.rotY, irz: 0,
+        w: gateUD.w, h: gateUD.h, d: gateUD.d,
+      },
+      {
+        name: 'Gate Trigger Zone',
+        body: {
+          rb: {
+            setTranslation: ({ x, y, z }) => {
+              gateTriggerMesh.position.set(x, y, z);
+              gateUD.triggerZ = z;
+            },
+            setRotation: (q) => gateTriggerMesh.quaternion.set(q.x, q.y, q.z, q.w),
+          },
+          colliders: [],
+        },
+        mesh: gateTriggerMesh,
+        ix: 2.45, iy: WALL_HEIGHT / 2, iz: gateUD.triggerZ,
+        irx: 0, iry: -85, irz: 0,
+      },
     ];
 
     return this;
@@ -168,6 +237,7 @@ export default class Level {
 
   setPhysicsDebugVisible = (v) => {
     this.#drainMesh.visible = v;
+    this.#gateTriggerMesh.visible = v;
   };
 
   // --- Debug UI compatibility getters ---

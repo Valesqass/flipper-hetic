@@ -5,6 +5,7 @@
 
 const POINTS_BY_TYPE = {
   bumper:     100,
+  bumper_200: 200,
   bumper_100: 100,
   bumper_50:   50,
   bumper_25:   25,

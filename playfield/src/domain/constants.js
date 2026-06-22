@@ -39,7 +39,7 @@ export const PLUNGER_SPAWN_Z = 7.2;
 // Murs du couloir de lancement — encadrent la bille a 0.5 unite de part et d'autre
 export const LAUNCH_WALL_OFFSET_X = 0.5;
 export const LAUNCH_WALL_THICKNESS = 0.15; // plus fins que les murs de contour
-export const LAUNCH_WALL_LENGTH = 22;
+export const LAUNCH_WALL_LENGTH = 16.2;
 export const LAUNCH_WALL_Z = PLUNGER_SPAWN_Z - LAUNCH_WALL_LENGTH / 2;
 export const LAUNCH_WALL_LEFT_X = PLUNGER_SPAWN_X - LAUNCH_WALL_OFFSET_X;
 export const LAUNCH_WALL_RIGHT_X = PLUNGER_SPAWN_X + LAUNCH_WALL_OFFSET_X;
@@ -90,7 +90,7 @@ export const ARCH_OFFSET_Z   = 2;
 export const ARCH_ROT_Y      = 0;
 
 // Bumpers
-export const BUMPER_REPULSE_FORCE = 4;
+export const BUMPER_REPULSE_FORCE = 7;
 
 // Drain — seuil Z au-dela duquel la bille est consideree perdue.
 // Juste apres la ligne des flippers (z~12.9), avant le mur bas (z~14.65).

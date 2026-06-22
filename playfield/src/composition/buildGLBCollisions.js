@@ -8,6 +8,8 @@ export function buildGLBCollisions(physicsWorld, gltfScene) {
   gltfScene.updateMatrixWorld(true);
 
   const isBumper = gltfScene.name?.startsWith('Bumper-') ?? false;
+  const config = BUMPER_CONFIG[gltfScene.name];
+  const bumperType = config?.serverType ?? 'bumper_10';
   const center = isBumper ? { x: gltfScene.position.x, y: 0, z: gltfScene.position.z } : null;
 
   const tmp = new Vector3();
@@ -35,9 +37,9 @@ export function buildGLBCollisions(physicsWorld, gltfScene) {
         .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS),
       rb,
     );
-    const config = BUMPER_CONFIG[gltfScene.name];
-    const bumperType = config?.serverType ?? 'bumper_10';
-    const userData = isBumper ? { type: bumperType, center } : { type: 'table' };
+    const userData = isBumper
+      ? { type: bumperType, center }
+      : { type: 'table' };
     createBodyHandle(rb, { userData, colliders: [col] });
   });
 }

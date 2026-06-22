@@ -11,7 +11,8 @@ export const GLB_POSITION_Y = 0;
 export const GLB_POSITION_Z = 0;
 
 const EXTRA_MODELS = [
-  'Bumper-barril',
+  'Bumper-barril-1',
+  'Bumper-barril-2',
   'Bumper-losange1',
   'Bumper-losange2',
   'Bumper-triangle1',
@@ -25,6 +26,11 @@ const EXTRA_MODELS = [
   'Obstacle-tunnel2',
 ];
 
+const MODEL_FILES = {
+  'Bumper-barril-1': 'Bumper-barril',
+  'Bumper-barril-2': 'Bumper-barril',
+};
+
 const EXTRA_SCALE_X = 6.372;
 const EXTRA_SCALE_Y = 3.078;
 const EXTRA_SCALE_Z = 3.51;
@@ -37,7 +43,9 @@ const EXTRA_POS_Z   = 0.758;
 const DEG = Math.PI / 180;
 
 const BUMPER_POS = {
-  'Bumper-losange2': { x: -0.8, y: EXTRA_POS_Y, z: 4 },
+  'Bumper-losange2':  { x: -0.8, y: EXTRA_POS_Y, z: 4 },
+  'Bumper-barril-1':  { x: 0,    y: EXTRA_POS_Y, z: 0.758 },
+  'Bumper-barril-2':  { x: -3,   y: EXTRA_POS_Y, z: 0.758 },
 };
 
 class ModelLoader {
@@ -45,7 +53,7 @@ class ModelLoader {
     const loader = new GLTFLoader();
     const scenes = await Promise.all(
       EXTRA_MODELS.map(name => new Promise((resolve, reject) =>
-        loader.load(`/models/${name}.glb`, (gltf) => { gltf.scene.name = name; resolve(gltf.scene); }, undefined, reject),
+        loader.load(`/models/${MODEL_FILES[name] ?? name}.glb`, (gltf) => { gltf.scene.name = name; resolve(gltf.scene); }, undefined, reject),
       )),
     );
     for (const m of scenes) {
