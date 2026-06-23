@@ -30,7 +30,7 @@ export const PLAYFIELD_VIEW_DEFAULTS = {
   // (cf. scene.js, couleur orange chaude + ombres) vient du coin BAS-DROITE hors
   // plateau (X+ = droite, Z+ = bas/joueur), angle rasant -> ombres longues vers
   // le haut du plateau. Ambient baisse pour garder du contraste.
-  ambientIntensity: 0.55,
+  ambientIntensity: 1.0,
   dirLightX: 14,
   dirLightY: 14,
   dirLightZ: 18,

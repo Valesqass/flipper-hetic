@@ -34,6 +34,7 @@ export default class ViewRuntime {
   #orthoCamera;
   #v = new THREE.Vector3();
   #toView = new THREE.Matrix4();
+  #shakeMag = 0;
 
   params;
 
@@ -51,6 +52,29 @@ export default class ViewRuntime {
   }
 
   getCamera = () => this.#activeCamera;
+
+  /** Declenche une secousse camera (ex: impact bumper). Cumulatif, plafonne. */
+  shake = (intensity = 1) => {
+    this.#shakeMag = Math.min(this.#shakeMag + intensity, 1.5);
+  };
+
+  /** A appeler chaque frame avant le rendu : applique puis attenue la secousse. */
+  tickShake = () => {
+    const cam = this.#activeCamera;
+    if (!cam) return;
+    const p = this.params;
+    if (this.#shakeMag <= 0.001) {
+      cam.position.set(p.cameraPosX, p.cameraPosY, p.cameraPosZ);
+      return;
+    }
+    const amp = 0.22 * this.#shakeMag;
+    cam.position.set(
+      p.cameraPosX + (Math.random() * 2 - 1) * amp,
+      p.cameraPosY + (Math.random() * 2 - 1) * amp,
+      p.cameraPosZ + (Math.random() * 2 - 1) * amp,
+    );
+    this.#shakeMag *= 0.82;
+  };
 
   onResize = () => {
     if (this.params.cameraMode === 'perspective') {

@@ -30,7 +30,7 @@ let levelRef = null;
 const collisionHandler = new CollisionHandler({
   onCollision: (type) => {
     network.emitCollision(type);
-    if (type.startsWith('bumper'))  actuators.onBumperHit();
+    if (type.startsWith('bumper'))  { actuators.onBumperHit(); viewRuntime.shake(); }
     else if (type === 'slingshot') actuators.onSlingshotHit();
     else if (type === 'tunnel')    audio.play('milestone-2');
     else if (type === 'tunnel-rv') audio.play('milestone-1');
@@ -147,5 +147,5 @@ new GameLoop({
     level.launchGateActor.open();
   },
   gameState: network.gameState,
-  renderFn:  () => bloom.render(viewRuntime.getCamera()),
+  renderFn:  () => { viewRuntime.tickShake(); bloom.render(viewRuntime.getCamera()); },
 }).start();

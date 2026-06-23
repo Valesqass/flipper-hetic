@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import {
   MAX_RENDERER_PIXEL_RATIO,
   RENDERER_ANTIALIAS,
@@ -43,12 +44,23 @@ class PlayfieldScene {
     this.#renderer.setSize(window.innerWidth, window.innerHeight);
     this.#renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, MAX_RENDERER_PIXEL_RATIO));
     this.#renderer.toneMapping = THREE.ReinhardToneMapping;
-    this.#renderer.toneMappingExposure = 1.45;
+    this.#renderer.toneMappingExposure = 1.6;
     this.#renderer.shadowMap.enabled = true;
     this.#renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.style.margin = "0";
     document.body.style.overflow = "hidden";
     document.body.appendChild(this.#renderer.domElement);
+
+    // Environment map : reflexions douces sur les surfaces metalliques (murs, barils,
+    // bille, triangles) -> rendu bien plus riche que des metaux mats/sombres.
+    const pmrem = new THREE.PMREMGenerator(this.#renderer);
+    this.#scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.08).texture;
+
+    // Vignette cinematique : assombrit legerement les bords pour focaliser le regard.
+    const vignette = document.createElement("div");
+    vignette.style.cssText =
+      "position:fixed;inset:0;pointer-events:none;z-index:5;box-shadow:inset 0 0 240px 70px rgba(0,0,0,0.6)";
+    document.body.appendChild(vignette);
 
     this.#ambientLight = new THREE.AmbientLight(0xffffff, PLAYFIELD_VIEW_DEFAULTS.ambientIntensity);
     this.#scene.add(this.#ambientLight);
