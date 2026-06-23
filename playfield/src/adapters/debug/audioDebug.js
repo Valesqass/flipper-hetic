@@ -132,7 +132,7 @@ const SAMPLE_LABELS = {
   "game-over-1": "Game Over 1",
   "game-over-2": "Game Over 2",
   "milestone-1": "Milestone RV",
-  "milestone-2": "Milestone Tuco",
+  "milestone-2": "Milestone Gas-Mask",
 };
 
 function createSlider(labelText, initialValue, onChange, onReset) {

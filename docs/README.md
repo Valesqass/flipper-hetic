@@ -1,4 +1,4 @@
-# Documentation — Flipper Hetic
+# Documentation — Flipper Hetic Breaking Bad
 
 Tout est sous **`docs/`** : guides et références à la **racine**, le **cahier des charges technique HETIC** dans **`hetic/`** uniquement.
 

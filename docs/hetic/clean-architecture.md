@@ -58,12 +58,14 @@ Librairies et details techniques :
 
 ### Playfield
 - `playfield/src/main.js` : composition root — câblage réseau, collisions, input, puis démarrage de la boucle.
-- `playfield/src/composition/buildLevel.js` : construction du plateau (meshes Three.js + bodies Rapier).
-- `playfield/src/composition/runGameLoop.js` : boucle animation / pas physique / rendu.
+- `playfield/src/composition/Level.js` : niveau complet (Game Object Pattern) - murs, bumpers, acteurs, décors, triggers.
+- `playfield/src/composition/GameLoop.js` : boucle animation / pas physique / rendu.
+- `playfield/src/composition/ViewRuntime.js` : caméra, resize, shake d'écran.
+- `playfield/src/composition/wireCollisions.js` : câblage événements Rapier vers CollisionHandler.
 - `playfield/src/domain/` : constantes du plateau, regles pures
 - `playfield/src/usecases/` : `collisionHandler.js` (use case pur)
-- `playfield/src/adapters/input.js` : adapter d'entree (clavier aujourd'hui, IoT plus tard)
-- `playfield/src/adapters/network.js` : adapter Socket
+- `playfield/src/adapters/input/InputController.js` : adapter d'entree (clavier + cabinet IoT)
+- `playfield/src/adapters/network/NetworkAdapter.js` : adapter Socket
 - `playfield/src/adapters/renderer/` : Three.js (rendu 3D)
 - `playfield/src/adapters/physics/` : moteur physique (Rapier via port)
   - `ports/PhysicsPort.js` : contrat du moteur
@@ -71,7 +73,6 @@ Librairies et details techniques :
   - `index.js` : barrel selectionnant le backend actif
 - `playfield/src/adapters/actuators.js` : effets sortants (haptique, sons)
 - `playfield/src/domain/viewConfig.js` : config vue production (caméra, gravité, lumières)
-- `playfield/src/composition/playfieldViewRuntime.js` : runtime caméra (perspective / orthographique)
 
 ### Backglass
 - `backglass/src/main.js` : composition root

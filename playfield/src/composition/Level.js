@@ -23,6 +23,8 @@ export default class Level {
   #onDrainZChange;
   #drainMesh = null;
   #gateTriggerMesh = null;
+  #tunnelGasMaskMesh = null;
+  #tunnelRvMesh = null;
 
   // Actors — the core game objects
   ballActor        = null;
@@ -40,8 +42,9 @@ export default class Level {
   group        = null;
 
   // Debug data
-  bumpers  = [];
-  triggers = [];
+  bumpers       = [];
+  triggers      = [];
+  decorElements = [];
 
   constructor({ scene, physicsWorld, onDrainZChange = () => {} }) {
     this.#scene = scene;
@@ -70,7 +73,9 @@ export default class Level {
         extrasGroup.add(m);
       }
       m.updateMatrixWorld(true);
-      buildGLBCollisions(this.#physicsWorld, m);
+      if (!m.name.startsWith('Decor-')) {
+        buildGLBCollisions(this.#physicsWorld, m);
+      }
     }
 
     this.#physicsWorld.createStaticBox({
@@ -107,6 +112,36 @@ export default class Level {
     gateTriggerMesh.visible = false;
     envGroup.add(gateTriggerMesh);
     this.#gateTriggerMesh = gateTriggerMesh;
+
+    const gasMaskPos  = { x: -1.9,   y: 0.5, z: -11.25 };
+    const gasMaskSize = { w: 1.1,    h: 1.5, d: 0.2 };
+    const rvPos       = { x: -5.05,  y: 0.5, z: -5.95  };
+    const rvSize      = { w: 0.6,    h: 1.5, d: 0.2 };
+
+    const tunnelGasMaskBody = this.#physicsWorld.createSensor({
+      width: gasMaskSize.w, height: gasMaskSize.h, depth: gasMaskSize.d,
+      position: gasMaskPos,
+      type: 'tunnel',
+    });
+    const tunnelRvBody = this.#physicsWorld.createSensor({
+      width: rvSize.w, height: rvSize.h, depth: rvSize.d,
+      position: rvPos,
+      type: 'tunnel-rv',
+    });
+
+    const tunnelGreenMat = new MeshBasicMaterial({ color: 0x00ff44, transparent: true, opacity: 0.75, side: DoubleSide, depthWrite: false });
+
+    const tunnelGasMaskMesh = new Mesh(new BoxGeometry(gasMaskSize.w, gasMaskSize.h, gasMaskSize.d), tunnelGreenMat);
+    tunnelGasMaskMesh.position.set(gasMaskPos.x, gasMaskPos.y, gasMaskPos.z);
+    tunnelGasMaskMesh.visible = false;
+    envGroup.add(tunnelGasMaskMesh);
+    this.#tunnelGasMaskMesh = tunnelGasMaskMesh;
+
+    const tunnelRvMesh = new Mesh(new BoxGeometry(rvSize.w, rvSize.h, rvSize.d), tunnelGreenMat.clone());
+    tunnelRvMesh.position.set(rvPos.x, rvPos.y, rvPos.z);
+    tunnelRvMesh.visible = false;
+    envGroup.add(tunnelRvMesh);
+    this.#tunnelRvMesh = tunnelRvMesh;
 
     // --- Level group: collect all actor meshes + environment ---
     const levelGroup = new Group();
@@ -149,7 +184,32 @@ export default class Level {
           ix: s.position.x, iy: s.position.y, iz: s.position.z,
           irx: s.rotation.x / DEG, iry: s.rotation.y / DEG, irz: s.rotation.z / DEG,
           shapeControls: [
-            { key: 'scale', label: 'Scale', min: 0.01, max: 5, step: 0.05, default: 1.0 },
+            { key: 'scale', label: 'Scale', min: 0.001, max: 5, step: 0.001, default: 1.0 },
+          ],
+          onShapeChange: (key, value) => {
+            if (key === 'scale') s.scale.set(baseScale.x * value, baseScale.y * value, baseScale.z * value);
+          },
+        };
+      });
+
+    // --- Debug decor elements (visual-only, no physics) ---
+    this.decorElements = extraScenes
+      .filter(s => s.name.startsWith('Decor-'))
+      .map(s => {
+        const baseScale = { x: s.scale.x, y: s.scale.y, z: s.scale.z };
+        return {
+          name: s.name,
+          body: {
+            rb: {
+              setTranslation: ({ x, y, z }) => s.position.set(x, y, z),
+              setRotation:    (q)           => s.quaternion.set(q.x, q.y, q.z, q.w),
+            },
+            colliders: [],
+          },
+          ix: s.position.x, iy: s.position.y, iz: s.position.z,
+          irx: s.rotation.x / DEG, iry: s.rotation.y / DEG, irz: s.rotation.z / DEG,
+          shapeControls: [
+            { key: 'scale', label: 'Scale', min: 0.001, max: 5, step: 0.001, default: 1.0 },
           ],
           onShapeChange: (key, value) => {
             if (key === 'scale') s.scale.set(baseScale.x * value, baseScale.y * value, baseScale.z * value);
@@ -226,6 +286,58 @@ export default class Level {
         ix: 2.45, iy: WALL_HEIGHT / 2, iz: gateUD.triggerZ,
         irx: 0, iry: -85, irz: 0,
       },
+      {
+        name: 'Trigger-gas-mask',
+        body: {
+          rb: {
+            setTranslation: ({ x, y, z }) => {
+              tunnelGasMaskBody.rb.setTranslation({ x, y, z }, true);
+              tunnelGasMaskMesh.position.set(x, y, z);
+            },
+            setRotation: (q) => {
+              tunnelGasMaskBody.rb.setRotation(q, true);
+              tunnelGasMaskMesh.quaternion.set(q.x, q.y, q.z, q.w);
+            },
+          },
+          colliders: [{
+            setHalfExtents: ({ x, y, z }) => {
+              tunnelGasMaskBody.colliders[0].setHalfExtents({ x, y, z });
+              tunnelGasMaskMesh.geometry.dispose();
+              tunnelGasMaskMesh.geometry = new BoxGeometry(x * 2, y * 2, z * 2);
+            },
+          }],
+        },
+        mesh: tunnelGasMaskMesh,
+        ix: gasMaskPos.x, iy: gasMaskPos.y, iz: gasMaskPos.z,
+        irx: 0, iry: 0, irz: 0,
+        w: gasMaskSize.w, h: gasMaskSize.h, d: gasMaskSize.d,
+      },
+      {
+        name: 'Trigger-rv',
+        body: {
+          rb: {
+            setTranslation: ({ x, y, z }) => {
+              tunnelRvBody.rb.setTranslation({ x, y, z }, true);
+              tunnelRvMesh.position.set(x, y, z);
+            },
+            setRotation: (q) => {
+              tunnelRvBody.rb.setRotation(q, true);
+              tunnelRvMesh.quaternion.set(q.x, q.y, q.z, q.w);
+            },
+          },
+          colliders: [{
+            setHalfExtents: ({ x, y, z }) => {
+              tunnelRvBody.colliders[0].setHalfExtents({ x, y, z });
+              tunnelRvMesh.geometry.dispose();
+              tunnelRvMesh.geometry = new BoxGeometry(x * 2, y * 2, z * 2);
+            },
+          }],
+        },
+        mesh: tunnelRvMesh,
+        ix: rvPos.x, iy: rvPos.y, iz: rvPos.z,
+        irx: 0, iry: 0, irz: 0,
+        w: rvSize.w, h: rvSize.h, d: rvSize.d,
+      },
     ];
 
     return this;
@@ -238,6 +350,8 @@ export default class Level {
   setPhysicsDebugVisible = (v) => {
     this.#drainMesh.visible = v;
     this.#gateTriggerMesh.visible = v;
+    this.#tunnelGasMaskMesh.visible = v;
+    this.#tunnelRvMesh.visible = v;
   };
 
   // --- Debug UI compatibility getters ---

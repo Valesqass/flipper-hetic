@@ -1,4 +1,4 @@
-# Architecture logicielle — Flipper Hetic
+# Architecture logicielle — Flipper Hetic Breaking Bad
 
 Ce document décrit **l’architecture adoptée par le projet** : une **Clean Architecture pragmatique** sur un **monorepo npm** (plusieurs applications + un serveur temps réel). Il sert de **carte de lecture** du dépôt pour toute personne qui parcourt le code (évaluation, reprise du projet, onboarding technique).
 
@@ -58,16 +58,18 @@ Les tests unitaires et d’intégration ciblant ces couches se trouvent sous `__
 
 ## Playfield (`playfield/src/`)
 
-- **`main.js`** — Composition : enchaîne `buildLevel` (plateau 3D + corps Rapier), réseau, collisions, entrées, puis démarre la boucle via `composition/runGameLoop.js`.
-- **`composition/buildLevel.js`** — Orchestrateur : délègue à `buildWalls.js`, `buildBumpers.js`, `buildSensors.js`, `buildActors.js` (un fichier par responsabilité), sans logique réseau.
-- **`composition/runGameLoop.js`** — Boucle `requestAnimationFrame` : pas physique, synchronisation mesh/body, rendu.
+- **`main.js`** — Composition : instancie `Level` (plateau 3D + corps Rapier), câble réseau/collisions/entrées, puis démarre la boucle via `composition/GameLoop.js`.
+- **`composition/Level.js`** — Niveau complet (Game Object Pattern) : construit murs, bumpers, acteurs (bille, flippers, gate), éléments décoratifs et triggers de tunnels ; expose les acteurs à `main.js`.
+- **`composition/GameLoop.js`** — Boucle `requestAnimationFrame` : pas physique, synchronisation mesh/body, rendu.
+- **`composition/ViewRuntime.js`** — Caméra, resize, shake d’écran, rendu final.
+- **`composition/wireCollisions.js`** — Câble les événements physiques Rapier vers `CollisionHandler`.
 - **`domain/`** — Constantes et paramètres de plateau (données de conception, seuils).
 - **`usecases/collisionHandler.js`** — Décisions liées aux collisions et au drain **sans** importer le client réseau (injection des effets de bord au niveau composition).
 - **`adapters/renderer/`** — Three.js : scène, caméra, meshes (bille, flippers, bumpers, etc.).
 - **`adapters/physics/`** — Moteur physique **Rapier** (`@dimforge/rapier3d-compat`, WASM) : monde, corps, écoute des contacts ; **`ports/PhysicsPort.js`** définit le contrat attendu d’un backend physique ; **`index.js`** expose le backend actif.
-- **`adapters/network.js`** — Client Socket.IO et état local synchronisé avec le serveur.
-- **`adapters/input.js`** — Entrées clavier (extensible vers matériel type IoT).
-- **`adapters/actuators.js`** — Sorties côté machine (ex. retours haptiques).
+- **`adapters/network/NetworkAdapter.js`** — Client Socket.IO et état local synchronisé avec le serveur.
+- **`adapters/input/InputController.js`** — Entrées clavier et cabinet IoT (via `bridge/`).
+- **`adapters/actuators.js`** — Sorties côté machine (sons, retours haptiques).
 
 **Flux de dépendances :** les use cases et le domaine **ne** dépendent **pas** de Three.js ni de Rapier ; les adaptateurs les consomment depuis la composition.
 
@@ -103,7 +105,7 @@ index.js  →  adapters/socketHandlers.js  →  usecases/  →  domain/
 ### Playfield
 
 ```
-main.js  →  composition/ (buildLevel, runGameLoop)
+main.js  →  composition/ (Level, GameLoop, ViewRuntime, wireCollisions)
          →  adapters/ (renderer, physics, network, input, actuators)
          →  usecases/  →  domain/
 ```

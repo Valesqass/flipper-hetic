@@ -2,7 +2,7 @@
 
 ## Vision
 
-Flipper est un flipper virtuel qui combine simulation physique (Three.js / Rapier) et contrôle clavier ou ESP32, jouable sur 3 écrans synchronisés en temps réel, pour une expérience arcade moderne.
+Flipper Hetic Breaking Bad est un flipper virtuel qui combine simulation physique (Three.js / Rapier) et contrôle clavier ou ESP32, jouable sur 3 écrans synchronisés en temps réel, pour une expérience arcade moderne.
 
 ## Objectifs
 

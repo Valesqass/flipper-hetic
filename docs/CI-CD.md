@@ -1,4 +1,4 @@
-# CI/CD — Flipper Hetic
+# CI/CD — Flipper Hetic Breaking Bad
 
 Deux pipelines GitHub Actions dans `.github/workflows/`.
 

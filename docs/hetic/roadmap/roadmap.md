@@ -13,7 +13,7 @@ La roadmap s'étale sur 10 semaines : S1 cadre + monorepo ; S2–S8 POC puis MVP
 
 ## Diagramme
 
-![Roadmap - Projet Flipper Virtuel](roadmap.png)
+![Roadmap - Flipper Hetic Breaking Bad](roadmap.png)
 
 ## Questions ouvertes
 

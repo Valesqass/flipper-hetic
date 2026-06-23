@@ -1,4 +1,4 @@
-# Flipper Hetic
+# Flipper Hetic Breaking Bad
 
 Flipper virtuel multi-écran : **Playfield** (3D), **Backglass**, **DMD**, synchronisés en temps réel via WebSocket.
 
@@ -16,7 +16,7 @@ Documentation (index unique) : [`docs/README.md`](docs/README.md). Alignement su
 │   ├── package.json
 │   └── src/
 │       ├── main.js           # Composition (réseau, input, callbacks)
-│       └── composition/      # buildLevel (plateau) + runGameLoop (animation)
+│       └── composition/      # Level (plateau) + GameLoop (boucle)
 │
 ├── backglass/
 │   ├── package.json
@@ -34,16 +34,17 @@ Documentation (index unique) : [`docs/README.md`](docs/README.md). Alignement su
 
 ## Lancement du projet
 
-L'ordre de lancement est important : commencez par le serveur.
+```bash
+npm install
+npm run dev:all
+```
 
-1. **Serveur (Port 3000)** :
-   `cd server && npm install && npm run dev`
-2. **Playfield (Port 5173)** :
-   `cd playfield && npm install && npm run dev`
-3. **Backglass (Port 5174)** :
-   `cd backglass && npm install && npm run dev`
-4. **DMD (Port 5175)** :
-   `cd dmd && npm install && npm run dev`
+| Interface | URL |
+| :--- | :--- |
+| Serveur (WebSocket) | http://localhost:3000 |
+| Playfield (3D) | http://localhost:5173 |
+| Backglass (Score) | http://localhost:5174 |
+| DMD (Dot Matrix) | http://localhost:5175 |
 
 ## 🐳 Docker
 

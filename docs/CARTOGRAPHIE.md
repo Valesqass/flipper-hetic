@@ -1,4 +1,4 @@
-# Cartographie d'architecture — Flipper Virtuel
+# Cartographie d'architecture — Flipper Hetic Breaking Bad
 
 Vue d'ensemble des composants du système, des technologies et des flux de communication.
 

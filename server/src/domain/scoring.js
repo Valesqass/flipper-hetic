@@ -1,21 +1,13 @@
-/**
- * Regles de scoring par type de collision.
- * Aucun import de framework — logique metier pure.
- */
-
 const POINTS_BY_TYPE = {
-  bumper:     100,
-  bumper_200: 200,
-  bumper_100: 100,
-  bumper_50:   50,
-  bumper_25:   25,
-  bumper_10:   10,
-  tunnel:       1000,
-  'tunnel-rv':  5000,
-  triangle:      0,
-  wall:          0,
-  flipper:       0,
-  drain:         0,
+  bumper:      100,
+  bumper_50:    50,
+  bumper_10:    10,
+  tunnel:      1500,
+  'tunnel-rv':  500,
+  triangle:       0,
+  wall:           0,
+  flipper:        0,
+  drain:          0,
 };
 
 export function getPoints(type) {

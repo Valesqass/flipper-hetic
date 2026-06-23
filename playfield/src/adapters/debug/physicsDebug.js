@@ -16,7 +16,7 @@ export function createPhysicsDebugUI({ onTriggerSpecialEvent } = {}) {
 
   const row = document.createElement('div');
   row.style.cssText = 'display:flex;gap:8px';
-  for (const [label, type] of [['▶ Tuco', 'tunnel'], ['▶ RV', 'tunnel-rv']]) {
+  for (const [label, type] of [['▶ Gas-Mask', 'tunnel'], ['▶ RV', 'tunnel-rv']]) {
     const btn = document.createElement('button');
     btn.textContent = label;
     btn.style.cssText = 'flex:1;padding:6px;background:#a040ff;color:#fff;border:none;border-radius:3px;cursor:pointer;font:bold 11px \'Courier New\'';

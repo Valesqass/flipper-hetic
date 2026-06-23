@@ -5,5 +5,8 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   server: { port: 5173, strictPort: true, host: true },
   build: { target: 'esnext' },
-  optimizeDeps: { esbuildOptions: { target: 'esnext' } },
+  optimizeDeps: {
+    esbuildOptions: { target: 'esnext' },
+    include: ['three/addons/environments/RoomEnvironment.js'],
+  },
 })

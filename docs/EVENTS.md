@@ -22,12 +22,10 @@ Ce document centralise les noms d'événements Socket.IO et les payloads attendu
 
 | `type` | Points | Description |
 |---|---|---|
-| `bumper_100` | +100 | Bumper principal (cylindre rouge) |
-| `bumper_50` | +50 | Bumper secondaire |
-| `bumper_25` | +25 | Bumper périphérique |
-| `bumper_10` | +10 | Bumper faible (diamant, triangle) |
-| `tunnel` | +1000 | Zone spéciale Tuco (déclenche `special_event`) |
-| `tunnel-rv` | +5000 | Zone spéciale RV (déclenche `special_event`) |
+| `bumper_50` | +50 | Bumper barril |
+| `bumper_10` | +10 | Bumper losange / triangle |
+| `tunnel` | +1500 | Zone Gas-Mask (déclenche `special_event`) |
+| `tunnel-rv` | +500 | Zone RV (déclenche `special_event`) |
 | `wall` | +0 | Mur (valide, sans points) |
 | `flipper` | +0 | Flipper (valide, sans points) |
 | `drain` | +0 | Drain (valide, sans points) |
@@ -41,7 +39,7 @@ Ce document centralise les noms d'événements Socket.IO et les payloads attendu
 | `game_started` | Partie demarree (contient l'etat initial) |
 | `game_over` | Fin de partie (contient l'etat final) |
 | `dmd_message` | Message a afficher sur le DMD |
-| `special_event` | Evenement special declenche (tunnel Tuco ou RV) |
+| `special_event` | Evenement special declenche (tunnel Gas-Mask ou RV) |
 | `highscore_beat` | Nouveau meilleur score atteint pendant la partie |
 
 ## Objet d'etat (`state_updated`)
@@ -72,7 +70,7 @@ Notes:
 ### `collision` (client -> serveur)
 
 ```json
-{ "type": "bumper_100" }
+{ "type": "bumper_50" }
 ```
 
 ### `dmd_message` (serveur -> clients)

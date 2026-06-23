@@ -39,7 +39,7 @@ Repeter pour 5 parties consecutives. Cocher chaque item pour chaque partie.
 ### Jeu (flippers + bumpers)
 
 - [ ] `X` / `C` (ou flèches) : flippers reactifs
-- [ ] Contact bumper : score +100 visible sur backglass et DMD
+- [ ] Contact bumper : score +50 (barril) ou +10 (losange/triangle) visible sur backglass et DMD
 - [ ] Pas de collision fantome (score qui monte sans contact)
 - [ ] Bille ne traverse pas les murs (anti-tunneling)
 

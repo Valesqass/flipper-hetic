@@ -128,9 +128,9 @@ const inputController = new InputController({
     pendingLaunchAfterStart = true;
     network.emitStartGame();
   },
-  onLeftFlipperDown()  { level.flipperActor.setActive('left', true);  network.emitFlipperLeftDown();  actuators.onFlipperFire('left'); },
+  onLeftFlipperDown()  { level.flipperActor.setActive('left', true);  network.emitFlipperLeftDown();  actuators.onFlipperFire(); },
   onLeftFlipperUp()    { level.flipperActor.setActive('left', false); network.emitFlipperLeftUp(); },
-  onRightFlipperDown() { level.flipperActor.setActive('right', true); network.emitFlipperRightDown(); actuators.onFlipperFire('right'); },
+  onRightFlipperDown() { level.flipperActor.setActive('right', true); network.emitFlipperRightDown(); actuators.onFlipperFire(); },
   onRightFlipperUp()   { level.flipperActor.setActive('right', false); network.emitFlipperRightUp(); },
   onDebugResetBall()   { level.ballActor.reset(); level.launchGateActor.open(); },
 });

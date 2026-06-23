@@ -1,4 +1,4 @@
-# CDC technique — Flipper virtuel
+# CDC technique — Flipper Hetic Breaking Bad
 
 Ce dossier regroupe le Cahier des Charges technique du projet. Pour lancer le code, les tests et l’architecture logicielle du dépôt, voir le [README du dépôt](../README.md) et l’index [Documentation](../README.md).
 

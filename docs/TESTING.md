@@ -1,4 +1,4 @@
-# Tests — Flipper Hetic
+# Tests — Flipper Hetic Breaking Bad
 
 Framework : **Vitest** (ESM natif).
 
@@ -54,7 +54,7 @@ Tests sur la machine d'état, le scoring, la gestion des billes, le relay flippe
 
 | # | Test | Résultat attendu |
 |---|------|-----------------|
-| 5 | `bumper_100` | `score += 100` |
+| 5 | `bumper` | `score += 100` |
 | 6 | `wall` | `score` inchangé |
 | 7 | `flipper` | `score` inchangé |
 | 8 | `drain` | `score` inchangé |

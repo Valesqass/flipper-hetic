@@ -13,36 +13,7 @@ import {
 } from "../../../domain/constants.js";
 import { getRapier } from "./init.js";
 import { MATERIALS, createBodyHandle } from "./PhysicsWorld.js";
-
-function quatFromYaw(angle) {
-  const half = angle / 2;
-  return { x: 0, y: Math.sin(half), z: 0, w: Math.cos(half) };
-}
-
-function quatFromAxisAngle(ax, ay, az, angle) {
-  const h = angle / 2, s = Math.sin(h);
-  return { x: ax * s, y: ay * s, z: az * s, w: Math.cos(h) };
-}
-
-function multiplyQuat(a, b) {
-  return {
-    x: a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
-    y: a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
-    z: a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w,
-    w: a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
-  };
-}
-
-function composeFlipperRot(yaw, rotX, rotZ) {
-  return multiplyQuat(
-    multiplyQuat(quatFromYaw(yaw), quatFromAxisAngle(1, 0, 0, rotX)),
-    quatFromAxisAngle(0, 0, 1, rotZ),
-  );
-}
-
-function qTiltFrom(rotX, rotZ) {
-  return multiplyQuat(quatFromAxisAngle(1, 0, 0, rotX), quatFromAxisAngle(0, 0, 1, rotZ));
-}
+import { mulQuat, composeRot, qTiltFrom } from "../../../domain/quaternionMath.js";
 
 function createOneFlipper(physicsWorld, side) {
   const RAPIER = getRapier();
@@ -78,7 +49,7 @@ function createOneFlipper(physicsWorld, side) {
   const restAngle   = isLeft ? -FLIPPER_REST_ANGLE :  FLIPPER_REST_ANGLE;
   const activeAngle = isLeft ?  FLIPPER_REST_ANGLE : -FLIPPER_REST_ANGLE;
 
-  rb.setRotation(composeFlipperRot(restAngle, FLIPPER_ROT_X, FLIPPER_ROT_Z), true);
+  rb.setRotation(composeRot(restAngle, FLIPPER_ROT_X, FLIPPER_ROT_Z), true);
 
   const qTilt = qTiltFrom(FLIPPER_ROT_X, FLIPPER_ROT_Z);
   return { body: handle, restAngle, activeAngle, currentAngle: restAngle, active: false, rotX: FLIPPER_ROT_X, rotZ: FLIPPER_ROT_Z, qTilt };
@@ -127,7 +98,7 @@ class FlipperBody {
       flipper.restAngle    = origRest   + thetaRad;
       flipper.activeAngle  = origActive + thetaRad;
       flipper.currentAngle = flipper.restAngle;
-      flipper.body.rb.setRotation(composeFlipperRot(flipper.restAngle, flipper.rotX, flipper.rotZ), true);
+      flipper.body.rb.setRotation(composeRot(flipper.restAngle, flipper.rotX, flipper.rotZ), true);
       flipper.body.rb.setAngvel({ x: 0, y: 0, z: 0 }, true);
     }
   }
@@ -149,12 +120,12 @@ class FlipperBody {
   #clampFlipper(flipper) {
     const q = flipper.body.rb.rotation();
     const qtInv = { x: -flipper.qTilt.x, y: -flipper.qTilt.y, z: -flipper.qTilt.z, w: flipper.qTilt.w };
-    const qYaw = multiplyQuat(q, qtInv);
+    const qYaw = mulQuat(q, qtInv);
     const angle = 2 * Math.atan2(qYaw.y, qYaw.w);
     const minAngle = Math.min(flipper.restAngle, flipper.activeAngle);
     const maxAngle = Math.max(flipper.restAngle, flipper.activeAngle);
     const clamped = Math.max(minAngle, Math.min(maxAngle, angle));
-    flipper.body.rb.setRotation(composeFlipperRot(clamped, flipper.rotX, flipper.rotZ), true);
+    flipper.body.rb.setRotation(composeRot(clamped, flipper.rotX, flipper.rotZ), true);
     if (clamped !== angle) {
       flipper.body.rb.setAngvel({ x: 0, y: 0, z: 0 }, true);
     }

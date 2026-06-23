@@ -5,11 +5,12 @@ import {
   PLUNGER_SPAWN_X, PLUNGER_SPAWN_Y, PLUNGER_SPAWN_Z,
 } from '../../domain/constants.js';
 import { PLAYFIELD_VIEW_DEFAULTS } from '../../domain/viewConfig.js';
+import { mulQuat, quatFromAxis, quatFromYaw, composeRot, qTiltFrom } from '../../domain/quaternionMath.js';
 
 const DEG = Math.PI / 180;
 const RESET_BTN_CSS = 'padding:1px 5px;background:transparent;color:#0ff;border:1px solid #0ff;border-radius:3px;cursor:pointer;font-size:11px;flex-shrink:0;line-height:1.4';
 
-export function createPlayfieldDebugUI({ gltfModel, gltfInner, extrasGroup, flipperBodies, ballBody, world, onConfigChange, physicsRotateY, setPhysicsDebugVisible, triggers, bumpers, slingshotGroup = null }) {
+export function createPlayfieldDebugUI({ gltfModel, gltfInner, extrasGroup, flipperBodies, ballBody, world, onConfigChange, physicsRotateY, setPhysicsDebugVisible, triggers, bumpers, decorElements, slingshotGroup = null }) {
   const defaults = {
     pivotX:       FLIPPER_PIVOT_X,
     pivotY:       FLIPPER_PIVOT_Y,
@@ -33,23 +34,6 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, extrasGroup, flip
   };
 
   const state = { ...defaults };
-
-  function quatFromYaw(a) { const h = a / 2; return { x: 0, y: Math.sin(h), z: 0, w: Math.cos(h) }; }
-  function quatFromAxis(ax, ay, az, a) { const h = a / 2, s = Math.sin(h); return { x: ax*s, y: ay*s, z: az*s, w: Math.cos(h) }; }
-  function mulQuat(a, b) {
-    return {
-      x: a.w*b.x + a.x*b.w + a.y*b.z - a.z*b.y,
-      y: a.w*b.y - a.x*b.z + a.y*b.w + a.z*b.x,
-      z: a.w*b.z + a.x*b.y - a.y*b.x + a.z*b.w,
-      w: a.w*b.w - a.x*b.x - a.y*b.y - a.z*b.z,
-    };
-  }
-  function composeRot(yaw, rx, rz) {
-    return mulQuat(mulQuat(quatFromYaw(yaw), quatFromAxis(1, 0, 0, rx)), quatFromAxis(0, 0, 1, rz));
-  }
-  function qTiltFrom(rx, rz) {
-    return mulQuat(quatFromAxis(1, 0, 0, rx), quatFromAxis(0, 0, 1, rz));
-  }
 
   function applyGravity() {
     if (!world) return;
@@ -318,7 +302,7 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, extrasGroup, flip
     rows.style.cssText = 'display:none;padding:4px 4px 0 8px';
 
     rows.appendChild(makeCompRow('x',  'Pos X',    -15,  15,  0.05, applyPos));
-    rows.appendChild(makeCompRow('y',  'Pos Y',     -5,   5,  0.05, applyPos));
+    rows.appendChild(makeCompRow('y',  'Pos Y',    -15,   5,  0.05, applyPos));
     rows.appendChild(makeCompRow('z',  'Pos Z',    -15,  15,  0.05, applyPos));
     rows.appendChild(makeCompRow('rx', 'Rot X°',  -180, 180,  1,    applyRot));
     rows.appendChild(makeCompRow('ry', 'Rot Y°',  -180, 180,  1,    applyRot));
@@ -369,6 +353,7 @@ export function createPlayfieldDebugUI({ gltfModel, gltfInner, extrasGroup, flip
   }
 
   makeComponentSection('▸ Bumpers', bumpers, 'bumpers');
+  makeComponentSection('▸ Décors', decorElements, 'decors');
   makeComponentSection('▸ Triggers', triggers, 'triggers');
 
   // ── Slingshot Group ───────────────────────────────────────────────────────
