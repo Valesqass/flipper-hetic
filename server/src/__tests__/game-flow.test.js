@@ -1,7 +1,7 @@
 /**
  * Test d'integration — partie complete (3 billes, scoring, restart).
  *
- * Simule un serveur Socket.IO en memoire avec deux clients connectes.
+ * Simule un serveur WebSocket natif (`ws`) en memoire avec deux clients connectes.
  * Valide le contrat evenementiel de bout en bout cote serveur.
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";

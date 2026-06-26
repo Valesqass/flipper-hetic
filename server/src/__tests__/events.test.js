@@ -1,8 +1,9 @@
 /**
- * Tests unitaires — server/src/events.js
+ * Tests d'integration — server/src/adapters/socketHandlers.js
  *
- * Couvre : machine d'etat, scoring, gestion des billes,
- * relay des flippers, et gardes anti-double-emission.
+ * Verifient le comportement du serveur a travers une vraie connexion
+ * WebSocket (machine d'etat, scoring, gestion des billes, relay flippers,
+ * gardes anti-double-emission). Chaque test isole un comportement.
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { createServer } from "http";

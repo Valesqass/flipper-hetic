@@ -1,3 +1,8 @@
+/**
+ * Regles de scoring par type de collision.
+ * Aucun import de framework — logique metier pure.
+ */
+
 const POINTS_BY_TYPE = {
   bumper:      100,
   bumper_50:    50,
