@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("../adapters/network.js", () => ({
-  initNetwork: vi.fn(),
+vi.mock("../net/NetworkAdapter.js", () => ({
+  NetworkAdapter: vi.fn(),
 }));
 
-import { initNetwork } from "../adapters/network.js";
+import { NetworkAdapter } from "../net/NetworkAdapter.js";
 import { wireDmdNetwork } from "../composition/wireDmdNetwork.js";
 
 describe("wireDmdNetwork", () => {
@@ -22,7 +22,7 @@ describe("wireDmdNetwork", () => {
       flashBallMessage: vi.fn(),
     };
     callbacks = {};
-    initNetwork.mockImplementation((cbs) => { callbacks = cbs; });
+    NetworkAdapter.mockImplementation((cbs) => { callbacks = cbs; });
     wireDmdNetwork({ refs, renderer });
   });
 

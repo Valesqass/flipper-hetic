@@ -1,5 +1,10 @@
 /**
- * Backglass — Montage du DOM (structure statique uniquement).
+ * Backglass — Montage du DOM initial.
+ *
+ * Construit le markup une fois au demarrage et renvoie les references aux
+ * elements pilotes ensuite par la vue. Les overlays d'effets (perte de bille,
+ * fumee) sont pre-generes ici, particules comprises (positions aleatoires
+ * figees au montage) ; l'animation elle-meme est jouee en CSS / par la vue.
  */
 
 // Sachet de "blue meth" (thème Breaking Bad) — un par balle restante.
@@ -157,12 +162,17 @@ export function mountBackglassRoot() {
       </div>
     </div>
     <div id="backglass-warm" class="backglass-warm" aria-hidden="true"></div>
+    <div id="server-overlay" class="server-overlay" aria-hidden="true">
+      <strong>Serveur hors ligne</strong>
+      <span>Reconnexion en cours…</span>
+    </div>
   `;
 
   document.body.append(app);
 
   return {
     root: app,
+    serverOverlay: document.getElementById("server-overlay"),
     scoreValue: document.getElementById("scoreValue"),
     ballsLeftValue: document.getElementById("ballsLeftValue"),
     ballsCount: document.getElementById("ballsCount"),

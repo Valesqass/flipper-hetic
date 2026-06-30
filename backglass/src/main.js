@@ -2,36 +2,25 @@
  * Backglass — Composition root.
  */
 import "./styles.css";
-import { CLIENT_EVENTS } from "shared";
-import { mountBackglassRoot } from "./renderer/mount.js";
-import { createBackglassView } from "./renderer/view.js";
-import { initNetwork } from "./adapters/network.js";
+import { mountBackglassRoot } from "./view/mount.js";
+import { BackglassView } from "./view/BackglassView.js";
+import { NetworkAdapter } from "./net/NetworkAdapter.js";
 
 const refs = mountBackglassRoot();
-const { renderState, showHighScorePopup, showVideoPopup, dismissAttract } = createBackglassView(refs);
+const view = new BackglassView(refs);
 
-const serverOverlay = document.createElement("div");
-serverOverlay.style.cssText = [
-  "display:none;position:fixed;inset:0;z-index:9999",
-  "background:rgba(0,0,0,.88);align-items:center;justify-content:center",
-  "flex-direction:column;gap:12px",
-  "font-family:'Courier New',monospace;color:#ff4444;font-size:1.1rem;text-align:center",
-].join(";");
-serverOverlay.innerHTML = "<strong>Serveur hors ligne</strong><span>Reconnexion en cours…</span>";
-document.body.appendChild(serverOverlay);
-
-const socket = initNetwork({
-  onConnect() { serverOverlay.style.display = "none"; },
-  onConnectionError() { serverOverlay.style.display = "flex"; },
-  onStateUpdated: renderState,
-  onHighScoreBeat: () => showHighScorePopup(),
-  onSpecialEvent: ({ event }) => showVideoPopup(event),
+const network = new NetworkAdapter({
+  onConnect() { refs.serverOverlay?.classList.remove("visible"); },
+  onConnectionError() { refs.serverOverlay?.classList.add("visible"); },
+  onStateUpdated: (state) => view.renderState(state),
+  onHighScoreBeat: () => view.showHighScorePopup(),
+  onSpecialEvent: ({ event }) => view.showVideoPopup(event),
 });
 
 // Écran d'accueil : "Press Enter to play" quitte l'attract et lance la partie.
 window.addEventListener("keydown", (event) => {
   if (event.key === "Enter" || event.key === "NumpadEnter") {
-    dismissAttract();
-    socket.emit(CLIENT_EVENTS.START_GAME);
+    view.dismissAttract();
+    network.emitStartGame();
   }
 });

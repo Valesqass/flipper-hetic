@@ -1,6 +1,8 @@
 /**
- * Backglass — Mise à jour de la vue à partir de l'état serveur.
+ * Backglass — Mise à jour de la vue à partir de l'état serveur (POO).
  */
+import { ScreenStateMachine } from "../presentation/ScreenStateMachine.js";
+import { formatScore } from "../presentation/scoreFormat.js";
 
 const VIDEO_BY_EVENT = {
   'tunnel':    '/assets/video/tight-tight-tight.mov',
@@ -92,20 +94,36 @@ function createCountUp(el, { punch = false } = {}) {
   };
 }
 
-export function createBackglassView(refs) {
-  const { scoreValue, ballsLeftValue, highscoreValue, ballIcons, ballsCount, ballLossOverlay } = refs;
-  const TOTAL_BALLS = Array.isArray(ballIcons) ? ballIcons.length : 3;
-  let prevBallsLeft = null;
-  let ballLossTimer = 0;
+export class BackglassView {
+  #refs;
+  #totalBalls;
+  #prevBallsLeft = null;
+  #ballLossTimer = 0;
+  #setScore;
+  #setHighscore;
+  #screens;
 
-  const setScore = createCountUp(scoreValue, { punch: true });
-  const setHighscore = createCountUp(highscoreValue, { punch: true });
+  constructor(refs) {
+    this.#refs = refs;
+    const { ballIcons } = refs;
+    this.#totalBalls = Array.isArray(ballIcons) ? ballIcons.length : 3;
+    this.#setScore = createCountUp(refs.scoreValue, { punch: true });
+    this.#setHighscore = createCountUp(refs.highscoreValue, { punch: true });
+
+    // La policy accueil/jeu/game over vit dans une machine dediee ; la vue ne
+    // fournit que les effets DOM (toggles de classes + remplissage du dossier).
+    this.#screens = new ScreenStateMachine({
+      onAttract: () => this.#showAttract(),
+      onBackglass: () => this.#showBackglass(),
+      onGameOver: (score, highScore) => this.#showGameOver(score, highScore),
+    });
+  }
 
   // Animation plein écran : le sachet grossit, se déchire, les cristaux jaillissent.
-  function playBallLoss(lostIndex) {
-    const el = ballLossOverlay;
+  #playBallLoss(lostIndex) {
+    const { ballLossOverlay: el, ballIcons } = this.#refs;
     if (!el || typeof requestAnimationFrame !== "function" || prefersReducedMotion()) return;
-    clearTimeout(ballLossTimer);
+    clearTimeout(this.#ballLossTimer);
     el.classList.remove("active", "closing");
 
     // Le gros sachet part de la place du sachet perdu dans la rangée (effet FLIP).
@@ -128,9 +146,9 @@ export function createBackglassView(refs) {
     el.classList.add("active");
     // Fermeture en 2 temps : on fait disparaître l'overlay AVANT de retirer .active,
     // sinon les fragments reviennent visibles (le sachet réapparaît) pendant le fondu.
-    ballLossTimer = setTimeout(() => {
+    this.#ballLossTimer = setTimeout(() => {
       el.classList.add("closing");
-      ballLossTimer = setTimeout(() => {
+      this.#ballLossTimer = setTimeout(() => {
         el.classList.remove("active", "closing");
         el.setAttribute("aria-hidden", "true");
       }, 320);
@@ -138,76 +156,37 @@ export function createBackglassView(refs) {
   }
 
   // Sachets de meth : un par balle. On "vide" (classe lost) ceux des balles perdues.
-  function renderBalls(ballsLeft) {
+  #renderBalls(ballsLeft) {
+    const { ballIcons, ballsCount } = this.#refs;
     if (Array.isArray(ballIcons)) {
       ballIcons.forEach((icon, index) => {
         icon.classList.toggle("lost", index >= ballsLeft);
       });
     }
     if (ballsCount) {
-      ballsCount.textContent = `${Math.max(0, ballsLeft)}/${TOTAL_BALLS}`;
+      ballsCount.textContent = `${Math.max(0, ballsLeft)}/${this.#totalBalls}`;
     }
-    if (prevBallsLeft !== null && ballsLeft < prevBallsLeft) {
+    if (this.#prevBallsLeft !== null && ballsLeft < this.#prevBallsLeft) {
       // Le sachet qui vient d'être perdu est celui d'index `ballsLeft` (0-based).
-      playBallLoss(ballsLeft);
+      this.#playBallLoss(ballsLeft);
     }
-    prevBallsLeft = ballsLeft;
+    this.#prevBallsLeft = ballsLeft;
   }
 
-  // Machine d'états des écrans (accueil / jeu / game over).
-  // Le serveur repasse en "idle" ~6 s après la défaite, mais on MAINTIENT
-  // l'écran Game Over pendant 2 min avant de laisser revenir l'accueil.
-  const GAME_OVER_HOLD_MS = 2 * 60 * 1000;
-  let gameOverActive = false;
-  let gameOverTimer = 0;
-
-  function showAttract() {
-    refs.root?.classList.remove("show-game-over");
-    refs.root?.classList.remove("entered");
-  }
-  function showBackglass() {
-    refs.root?.classList.remove("show-game-over");
-    refs.root?.classList.add("entered");
+  #showAttract() {
+    this.#refs.root?.classList.remove("show-game-over");
+    this.#refs.root?.classList.remove("entered");
   }
 
-  function syncScreens(status, score, highScore) {
-    if (!refs.root) return;
-
-    if (status === "playing") {
-      clearTimeout(gameOverTimer);
-      gameOverActive = false;
-      showBackglass();
-      return;
-    }
-
-    if (status === "game_over") {
-      if (!gameOverActive) {
-        gameOverActive = true;
-        fillGameOver(score, highScore);
-        // Au bout de 2 min : on lâche le game over et l'accueil réapparaît.
-        clearTimeout(gameOverTimer);
-        gameOverTimer = setTimeout(() => {
-          gameOverActive = false;
-          showAttract();
-        }, GAME_OVER_HOLD_MS);
-      }
-      refs.root.classList.add("entered"); // accueil masqué
-      refs.root.classList.add("show-game-over");
-      return;
-    }
-
-    // status "idle" : si on tient encore le game over (fenêtre 2 min), on l'ignore.
-    if (gameOverActive) return;
-    showAttract();
+  #showBackglass() {
+    this.#refs.root?.classList.remove("show-game-over");
+    this.#refs.root?.classList.add("entered");
   }
 
-  // Groupe les chiffres par 3 (ex. 12450 -> "12 450").
-  function formatScore(n) {
-    return String(n ?? 0).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-  }
-
-  // Remplit le dossier "scène de crime" (une seule fois par game over).
-  function fillGameOver(score, highScore) {
+  // Effet "entree dans le game over" : remplit le dossier "scène de crime"
+  // (une seule fois) puis masque l'accueil et révèle l'écran game over.
+  #showGameOver(score, highScore) {
+    const refs = this.#refs;
     if (refs.gameOverScore) refs.gameOverScore.textContent = formatScore(score);
     if (refs.gameOverRecord) refs.gameOverRecord.textContent = formatScore(highScore);
     if (refs.gameOverCase) {
@@ -215,56 +194,60 @@ export function createBackglassView(refs) {
     }
     const beatRecord = (score ?? 0) > 0 && (score ?? 0) >= (highScore ?? 0);
     refs.gameOverNewRecord?.classList.toggle("visible", beatRecord);
+
+    refs.root?.classList.add("entered"); // accueil masqué
+    refs.root?.classList.add("show-game-over");
   }
 
-  return {
-    // Quitte l'écran d'accueil (appelé sur "Press Enter").
-    dismissAttract() {
-      refs.root?.classList.add("entered");
-    },
-    renderState(nextState) {
-      setScore(nextState.score ?? 0);
-      setHighscore(nextState.highScore ?? 0);
-      renderBalls(nextState.ballsLeft ?? 0);
-      syncScreens(nextState.status, nextState.score, nextState.highScore);
-    },
-    showHighScorePopup() {
-      const popup = refs.highscorePopup;
-      if (!popup) return;
-      popup.setAttribute("aria-hidden", "false");
-      popup.classList.add("visible");
-      const ANIMATION_DURATION = 3500;
-      setTimeout(() => {
-        popup.classList.remove("visible");
-        popup.setAttribute("aria-hidden", "true");
-      }, ANIMATION_DURATION);
-    },
-    showVideoPopup(eventType) {
-      const popup = refs.videoPopup;
-      const video = refs.specialEventVideo;
-      if (!popup || !video) return;
-      if (!video.paused && !video.ended) return;
-      const src = VIDEO_BY_EVENT[eventType];
-      if (!src) return;
+  // Quitte l'écran d'accueil (appelé sur "Press Enter").
+  dismissAttract() {
+    this.#refs.root?.classList.add("entered");
+  }
 
-      const hide = () => {
-        popup.classList.remove("visible");
-        popup.setAttribute("aria-hidden", "true");
-        video.src = "";
-        video.onerror = null;
-        video.onended = null;
-      };
+  renderState(nextState) {
+    this.#setScore(nextState.score ?? 0);
+    this.#setHighscore(nextState.highScore ?? 0);
+    this.#renderBalls(nextState.ballsLeft ?? 0);
+    this.#screens.sync(nextState.status, nextState.score, nextState.highScore);
+  }
 
-      video.src = src;
-      video.load();
-      popup.setAttribute("aria-hidden", "false");
-      popup.classList.add("visible");
-      video.onended = hide;
-      video.onerror = hide;
-      video.addEventListener('canplay', function onCanPlay() {
-        video.removeEventListener('canplay', onCanPlay);
-        video.play().catch(hide);
-      });
-    },
-  };
+  showHighScorePopup() {
+    const popup = this.#refs.highscorePopup;
+    if (!popup) return;
+    popup.setAttribute("aria-hidden", "false");
+    popup.classList.add("visible");
+    const ANIMATION_DURATION = 3500;
+    setTimeout(() => {
+      popup.classList.remove("visible");
+      popup.setAttribute("aria-hidden", "true");
+    }, ANIMATION_DURATION);
+  }
+
+  showVideoPopup(eventType) {
+    const popup = this.#refs.videoPopup;
+    const video = this.#refs.specialEventVideo;
+    if (!popup || !video) return;
+    if (!video.paused && !video.ended) return;
+    const src = VIDEO_BY_EVENT[eventType];
+    if (!src) return;
+
+    const hide = () => {
+      popup.classList.remove("visible");
+      popup.setAttribute("aria-hidden", "true");
+      video.src = "";
+      video.onerror = null;
+      video.onended = null;
+    };
+
+    video.src = src;
+    video.load();
+    popup.setAttribute("aria-hidden", "false");
+    popup.classList.add("visible");
+    video.onended = hide;
+    video.onerror = hide;
+    video.addEventListener('canplay', function onCanPlay() {
+      video.removeEventListener('canplay', onCanPlay);
+      video.play().catch(hide);
+    });
+  }
 }

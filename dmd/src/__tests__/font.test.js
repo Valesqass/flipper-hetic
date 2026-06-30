@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { drawBitmapText } from "../renderer/font.js";
+import { drawBitmapText } from "../view/font.js";
 
 function makeCtx() {
   return { fillRect: vi.fn() };

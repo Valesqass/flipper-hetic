@@ -58,6 +58,6 @@ Le mapping logiciel du playfield est aligné sur ces touches ; le câblage déta
 ## Architecture
 
 Le module respecte la Clean Architecture :
-- `adapters/actuators.js` est un **output adapter** (comme `adapters/network.js`)
+- `adapters/actuators.js` est un **output adapter** (comme `adapters/network/NetworkAdapter.js`)
 - `main.js` est la **composition root** qui branche les événements sur l'adapter
 - Aucun use case ni domaine ne connaît les actionneurs directement

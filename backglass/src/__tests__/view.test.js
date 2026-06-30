@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createBackglassView } from "../renderer/view.js";
+import { BackglassView } from "../view/BackglassView.js";
 
 function makeBallIcon() {
   return { classList: { toggle: vi.fn() } };
@@ -34,8 +34,8 @@ function makeRefs() {
 describe("renderState", () => {
   it("1 — met a jour score, highScore, ballsLeft (sachets)", () => {
     const refs = makeRefs();
-    const { renderState } = createBackglassView(refs);
-    renderState({ score: 1500, highScore: 3000, ballsLeft: 2 });
+    const view = new BackglassView(refs);
+    view.renderState({ score: 1500, highScore: 3000, ballsLeft: 2 });
     expect(refs.scoreValue.textContent).toBe("1500");
     expect(refs.highscoreValue.textContent).toBe("3000");
     // 2 balles restantes : sachets 0 et 1 pleins, sachet 2 vide (lost)
@@ -46,8 +46,8 @@ describe("renderState", () => {
 
   it("2 — valeurs absentes : score 0 et tous les sachets vides", () => {
     const refs = makeRefs();
-    const { renderState } = createBackglassView(refs);
-    renderState({});
+    const view = new BackglassView(refs);
+    view.renderState({});
     expect(refs.scoreValue.textContent).toBe("0");
     refs.ballIcons.forEach((icon) => {
       expect(icon.classList.toggle).toHaveBeenCalledWith("lost", true);
@@ -58,8 +58,8 @@ describe("renderState", () => {
 describe("showHighScorePopup", () => {
   it("3 — rend le popup visible (aria-hidden false + classe visible)", () => {
     const refs = makeRefs();
-    const { showHighScorePopup } = createBackglassView(refs);
-    showHighScorePopup();
+    const view = new BackglassView(refs);
+    view.showHighScorePopup();
     expect(refs.highscorePopup.setAttribute).toHaveBeenCalledWith("aria-hidden", "false");
     expect(refs.highscorePopup.classList.add).toHaveBeenCalledWith("visible");
   });
@@ -69,15 +69,15 @@ describe("showHighScorePopup", () => {
 describe("showVideoPopup", () => {
   it("5 — type inconnu : ne fait rien", () => {
     const refs = makeRefs();
-    const { showVideoPopup } = createBackglassView(refs);
-    showVideoPopup("inexistant");
+    const view = new BackglassView(refs);
+    view.showVideoPopup("inexistant");
     expect(refs.videoPopup.classList.add).not.toHaveBeenCalled();
   });
 
   it("6 — type tunnel : set src video et rend le popup visible", () => {
     const refs = makeRefs();
-    const { showVideoPopup } = createBackglassView(refs);
-    showVideoPopup("tunnel");
+    const view = new BackglassView(refs);
+    view.showVideoPopup("tunnel");
     expect(refs.specialEventVideo.src).toBeTruthy();
     expect(refs.videoPopup.setAttribute).toHaveBeenCalledWith("aria-hidden", "false");
     expect(refs.videoPopup.classList.add).toHaveBeenCalledWith("visible");
@@ -87,8 +87,8 @@ describe("showVideoPopup", () => {
     const refs = makeRefs();
     refs.specialEventVideo.paused = false;
     refs.specialEventVideo.ended = false;
-    const { showVideoPopup } = createBackglassView(refs);
-    showVideoPopup("tunnel");
+    const view = new BackglassView(refs);
+    view.showVideoPopup("tunnel");
     expect(refs.videoPopup.classList.add).not.toHaveBeenCalled();
   });
 });

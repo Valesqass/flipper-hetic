@@ -77,13 +77,23 @@ Les tests unitaires et d’intégration ciblant ces couches se trouvent sous `__
 
 ## Backglass et DMD (`backglass/src/`, `dmd/src/`)
 
-Structure parallèle et lisible :
+Ce sont des **applications de présentation** (aucune logique métier — la source de
+vérité est le serveur). On n'y applique donc PAS la Clean Architecture du serveur,
+mais le pattern **Humble Object / MVVM**, découpé selon des préoccupations de front :
 
-- **`main.js`** — Composition.
-- **`adapters/network.js`** — Client Socket.IO.
-- **`renderer/mount.js`** — Insertion du markup dans le document.
-- **`renderer/view.js`** (backglass) ou **`composition/wireDmdNetwork.js`** (DMD) — Liaison état / événements vers la vue.
-- **`renderer/`** (DMD) — Police bitmap + canvas (`dotMatrix.js`, `font.js`).
+- **`net/`** — Source de données temps réel (client WebSocket, classe `NetworkAdapter`).
+- **`presentation/`** — Logique de présentation **pure et testable** (le *view-model*) :
+  décide *quoi* afficher, sans toucher au DOM/canvas.
+  - DMD : `TextScroller` (défilement), `textMetrics` (mesure police 5×7).
+  - Backglass : `ScreenStateMachine` (écrans accueil/jeu/game over), `scoreFormat`.
+- **`view/`** — Rendu « humble » : canvas/DOM, le plus passif possible.
+  - DMD : `DotMatrixRenderer`, `font` (table 5×7 + tracé), `mount`.
+  - Backglass : `BackglassView`, `mount`.
+- **`composition/` + `main.js`** — Composition root qui câble `net` → `presentation` → `view`
+  (DMD : `composition/wireDmdNetwork.js` ; backglass : câblage inline dans `main.js`).
+
+> Règle de dépendance : `view` dépend de `presentation`, jamais l'inverse
+> (`presentation/` ne contient aucun accès DOM/canvas).
 
 ---
 
@@ -110,12 +120,13 @@ main.js  →  composition/ (Level, GameLoop, ViewRuntime, wireCollisions)
          →  usecases/  →  domain/
 ```
 
-### Backglass / DMD
+### Backglass / DMD (Humble Object / MVVM)
 
 ```
-main.js  →  renderer/mount.js
-         →  renderer/view.js (backglass) ou composition/wireDmdNetwork.js (DMD)
-         →  adapters/network.js
+main.js (composition root)
+   →  net/NetworkAdapter.js        (données entrantes : WebSocket)
+   →  presentation/                (view-model pur : TextScroller / ScreenStateMachine…)
+   →  view/                        (rendu humble : canvas / DOM + mount)
 ```
 
 ---

@@ -75,17 +75,35 @@ Librairies et details techniques :
 - `playfield/src/domain/viewConfig.js` : config vue production (caméra, gravité, lumières)
 
 ### Backglass
-- `backglass/src/main.js` : composition root
-- `backglass/src/renderer/mount.js` : insertion du DOM statique
-- `backglass/src/renderer/view.js` : mise a jour des champs (score, billes, statut)
-- `backglass/src/adapters/network.js` : client Socket.IO
+
+App de présentation : pattern **Humble Object / MVVM** (découpage front
+données / logique de présentation / vue), comme le DMD.
+
+- `backglass/src/main.js` : composition root (câble net → presentation → view)
+- `backglass/src/net/NetworkAdapter.js` : classe `NetworkAdapter`, source de données temps réel (WebSocket)
+- `backglass/src/presentation/` : logique de présentation pure et testable (view-model)
+  - `ScreenStateMachine.js` : machine d'états des écrans (accueil / jeu / game over)
+  - `scoreFormat.js` : formatage du score
+- `backglass/src/view/` : rendu « humble » (DOM)
+  - `BackglassView.js` : mise à jour des champs (score, billes, statut), animations
+  - `mount.js` : insertion du DOM statique
 
 ### DMD
+
+App de présentation : pattern **Humble Object / MVVM** (et non Clean Architecture,
+réservée au serveur qui porte la logique métier). Découpage par préoccupations
+de front : source de données / logique de présentation / vue.
+
 - `dmd/src/main.js` : composition root
-- `dmd/src/renderer/mount.js` : insertion du DOM statique
-- `dmd/src/composition/wireDmdNetwork.js` : enregistrement des listeners Socket.IO vers le renderer
-- `dmd/src/adapters/network.js` : client Socket.IO
-- `dmd/src/renderer/dotMatrix.js`, `font.js` : rendu canvas
+- `dmd/src/composition/wireDmdNetwork.js` : câblage Socket.IO → renderer
+- `dmd/src/net/NetworkAdapter.js` : classe `NetworkAdapter`, source de données temps réel (WebSocket)
+- `dmd/src/presentation/` : logique de présentation pure et testable (view-model)
+  - `TextScroller.js` : machine d'états du défilement de texte
+  - `textMetrics.js` : `measureTextWidth` (métrique police 5×7)
+- `dmd/src/view/` : rendu « humble » (canvas + DOM)
+  - `DotMatrixRenderer.js` : rendu dot-matrix sur canvas
+  - `font.js` : table 5×7 + `drawBitmapText`
+  - `mount.js` : insertion du DOM statique
 
 ### Server
 - `server/src/index.js` : composition root HTTP + Socket.IO

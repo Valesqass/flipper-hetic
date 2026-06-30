@@ -1,17 +1,18 @@
 /**
  * DMD — Branchement Socket.IO sur le renderer et les indicateurs DOM.
  */
-import { initNetwork } from "../adapters/network.js";
+import { NetworkAdapter } from "../net/NetworkAdapter.js";
 
 /**
  * @param {object} opts
  * @param {{ socketStatus: HTMLElement; stateStatus: HTMLElement; canvas: HTMLCanvasElement }} opts.refs
- * @param {ReturnType<typeof import("../renderer/dotMatrix.js").createDotMatrixRenderer>} opts.renderer
+ * @param {import("../view/DotMatrixRenderer.js").DotMatrixRenderer} opts.renderer
+ * @returns {NetworkAdapter}
  */
 export function wireDmdNetwork({ refs, renderer }) {
   const { socketStatus, stateStatus } = refs;
 
-  initNetwork({
+  return new NetworkAdapter({
     onConnect() {
       socketStatus.textContent = "socket: connected";
     },

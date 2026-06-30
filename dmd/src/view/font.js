@@ -45,6 +45,7 @@ export const FONT_5X7 = {
 
 /**
  * Dessine du texte bitmap sur un contexte raster.
+ * La largeur correspondante se calcule via `presentation/textMetrics.js`.
  */
  export function drawBitmapText(rasterCtx, text, originX, originY, opts = {}) {
   const pixelOn = opts.pixelOn ?? 1;

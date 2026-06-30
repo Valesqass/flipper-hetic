@@ -974,6 +974,27 @@ body {
    (.backglass__background, z auto) mais SOUS le contenu (.backglass__overlay
    score/texte, z 1) -> le texte reste net par-dessus la teinte.
    Le degrade est plus dense en bas-droite, comme la lumiere du playfield. */
+/* Overlay "serveur hors ligne" : masque tout l'ecran tant que la socket est KO. */
+.server-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.88);
+  font-family: "Courier New", monospace;
+  color: #ff4444;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.server-overlay.visible {
+  display: flex;
+}
+
 .backglass-warm {
   position: fixed;
   inset: 0;
